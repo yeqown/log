@@ -2,7 +2,7 @@ package log
 
 import (
 	"testing"
-	"time"
+	// "time"
 )
 
 func Test_NewLogger(t *testing.T) {
@@ -18,10 +18,10 @@ func Test_NewLogger(t *testing.T) {
 	l.Warn("Warn")
 	// time.Sleep(100 * time.Second)
 	//
-	for i := 0; i < 100; i++ {
-		l.Info("info loop")
-		time.Sleep(1 * time.Nanosecond)
-	}
+	// for i := 0; i < 100; i++ {
+	//	l.Info("info loop")
+	//	time.Sleep(1 * time.Nanosecond)
+	// }
 }
 
 func Test_FileSplit(t *testing.T) {
