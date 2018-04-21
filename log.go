@@ -249,7 +249,7 @@ func assembleFilepath(logPath, filename string) string {
 	return path.Join(logPath, filename)
 }
 
-func fmtFilenameWithDate(filename string) string {
+func formatFilename(filename string) string {
 	date := lstLogFileDate.Format("20060102")
 	return fmt.Sprintf("%s-%s", filename, date)
 }
@@ -257,7 +257,7 @@ func fmtFilenameWithDate(filename string) string {
 func renameLogfile(logPath, filename string) error {
 	if err := os.Rename(
 		assembleFilepath(logPath, filename),
-		assembleFilepath(logPath, fmtFilenameWithDate(filename)),
+		assembleFilepath(logPath, formatFilename(filename)),
 	); err != nil {
 		return err
 	}
