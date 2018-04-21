@@ -110,34 +110,27 @@ func New() *logger {
  * @logPath string
  * @filename string
  */
-func (l *logger) SetFileOutput(logPath, filename string) error {
-	file, err := openOrCreate(assembleFilepath(logPath, filename))
-	if err != nil {
-		return err
-	}
+func (l *logger) SetFileOutput(logPath, filename string) {
+	file := openOrCreate(assembleFilepath(logPath, filename))
 	l.file_log = log.New(file, "", log.Lshortfile|log.LstdFlags)
 
 	// new croutine to split file
 	go func(logPath, filename string) {
+		ticker := time.NewTicker(1 * time.Minute)
 		for true {
-			now := time.Now()
-			if shouldSplit() {
-				// rename old file
-				if err := renameLogfile(logPath, filename); err != nil {
-					panic(err)
-				}
-				// renew file
-				if file, err := openOrCreate(assembleFilepath(logPath, filename)); err != nil {
-					panic(err)
-				} else {
+			select {
+			case <-ticker.C:
+				now := time.Now()
+				// l.Info("timer calling")
+				if shouldSplit() {
+					renameLogfile(logPath, filename)
+					file := openOrCreate(assembleFilepath(logPath, filename))
 					l.file_log = log.New(file, "", log.Lshortfile|log.LstdFlags)
 					lstLogFileDate = now
 				}
 			}
-			time.Sleep(60 * time.Second)
 		}
 	}(logPath, filename)
-	return nil
 }
 
 func (l *logger) Output(level Level, s string) {
@@ -229,11 +222,13 @@ func (l *logger) SetLogLevel(level Level) {
 //
 //////////////////////////////////////
 
-func openOrCreate(filepath string) (file *os.File, err error) {
-	if file, err = os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644); err == nil {
-		return file, nil
+func openOrCreate(filepath string) *os.File {
+	file := new(os.File)
+	var err error
+	if file, err = os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644); err != nil {
+		panic(err)
 	}
-	return nil, err
+	return file
 }
 
 func assembleFilepath(logPath, filename string) string {
@@ -254,14 +249,13 @@ func formatFilename(filename string) string {
 	return fmt.Sprintf("%s-%s", filename, date)
 }
 
-func renameLogfile(logPath, filename string) error {
+func renameLogfile(logPath, filename string) {
 	if err := os.Rename(
 		assembleFilepath(logPath, filename),
 		assembleFilepath(logPath, formatFilename(filename)),
 	); err != nil {
-		return err
+		panic(err)
 	}
-	return nil
 }
 
 func shouldSplit() bool {
