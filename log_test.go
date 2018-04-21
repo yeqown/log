@@ -26,11 +26,15 @@ func Test_NewLogger(t *testing.T) {
 
 func Test_FileSplit(t *testing.T) {
 	logPath := "./testdata"
-	filename := "app"
-	if _, err := openOrCreate(assembleFilepath(logPath, filename)); err != nil {
+	filename := "split"
+
+	l := NewLogger()
+	if err := l.SetFileOutput(logPath, filename); err != nil {
 		t.Error(err)
-		t.FailNow()
+		t.Fail()
 	}
+
+	l.Info("split before")
 
 	if err := renameLogfile(logPath, filename); err != nil {
 		t.Error(err)
@@ -40,5 +44,12 @@ func Test_FileSplit(t *testing.T) {
 	if _, err := openOrCreate(assembleFilepath(logPath, filename)); err != nil {
 		t.Error(err)
 		t.FailNow()
+	} else {
+		if err := l.SetFileOutput(logPath, filename); err != nil {
+			t.Error(err)
+			t.Fail()
+		}
 	}
+
+	l.Info("split after")
 }
