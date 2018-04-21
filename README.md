@@ -26,4 +26,4 @@ func main() {
 
 ## using preview
 
-[screenshot](res/screenshot.png)
+![screenshot](https://raw.githubusercontent.com/yeqown/log/master/screenshot.png)
