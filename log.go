@@ -88,7 +88,7 @@ type logger struct {
 	logLevel Level
 }
 
-//NewLogger 实例化，供自定义
+// NewLogger 实例化，供自定义
 func NewLogger() *logger {
 	return &logger{
 		std_log:  log.New(os.Stderr, "", log.Lshortfile|log.LstdFlags),
@@ -97,7 +97,7 @@ func NewLogger() *logger {
 	}
 }
 
-//New 实例化，供外部直接调用 log.XXXX
+// New 实例化，供外部直接调用 log.XXXX
 func New() *logger {
 	return &logger{
 		std_log:  log.New(os.Stderr, "", log.Lshortfile|log.LstdFlags),
@@ -106,10 +106,7 @@ func New() *logger {
 	}
 }
 
-/*
- * @logPath string
- * @filename string
- */
+// SetFileOutput set logfile output folder, and filename
 func (l *logger) SetFileOutput(logPath, filename string) {
 	file := openOrCreate(assembleFilepath(logPath, filename))
 	l.file_log = log.New(file, "", log.Lshortfile|log.LstdFlags)
