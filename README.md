@@ -1,53 +1,67 @@
 # log
-golang logger
+golang logger based `log`
 
-## usage
+## Doc
+ref to: [https://godoc.org/github.com/yeqown/log](https://godoc.org/github.com/yeqown/log)
+
+## Usage
 
 sample-1.go
 ```golang
-// sample-1.go
-// can use `log.Info(s)` or other output function directly
-
 import (
   "github.com/yeqown/log"
 )
 
-func main() {  
-  log.Info("info")
+func main() {
+  intptr := new(int)
+  *intprt = 9999
+
+  struct_var := struct {
+    Name string
+    Age  int
+  }{"Tonn", 24}
+
+  // to set file output for default logger
+  SetFileOutput("/path/to/logfile", "default")
+
+  // also support Debug, Warn, Fatal, Error
+  log.Info("this is a struct var: ", struct_var)
+  log.Info("this is a int ptr and var: ", a, *a)
   log.Infof("%d is not equal to %d", 1, 2)
-  log.Error("info")
 }
 ```
 
 sample-2.go
 
 ```golang
-// sample-2.go
-// do `log.NewLogger` to new custom logger
-// do `logger.SetFileOutput(path, filename)` to add file output
-
 import (
   "github.com/yeqown/log"
 )
 
-const (
-  logPath = "./testdata"
-  filename = "app"
-)
-
 func main() {
+  // to make self logger
   l := log.NewLogger()
-  // set file output, if not set, logger will only output to stderr
-  l.SetFileOutput(logPath, filename)
-  
-  l.Info("info")
+
+  intptr := new(int)
+  *intprt = 9999
+
+  struct_var := struct {
+    Name string
+    Age  int
+  }{"Tonn", 24}
+
+  // to set file output for default logger
+  l.SetFileOutput("/path/to/logfile", "app")
+
+  // also support Debug, Warn, Fatal, Error
+  l.Info("this is a struct var: ", struct_var)
+  l.Info("this is a int ptr and var: ", a, *a)
   l.Infof("%d is not equal to %d", 1, 2)
-  l.Error("info")
 }
 ```
 
-## using preview
+## Using preview
 
-> Note: for testing function easily, I set ticker duration as 1*time.Second* like you see in the screenshot, default is 1 *time.Minute*
+> Note: this screenshot is log_test.go output's screenshot.
 
 ![screenshot](https://raw.githubusercontent.com/yeqown/log/master/screenshot.png)

@@ -1,0 +1,4 @@
+default.log2018/05/29 10:21:54 log_test.go:48: [ERROR] Error
+default.log2018/05/29 10:21:54 log_test.go:49: [WARN] Warn
+default.log2018/05/29 10:21:54 log_test.go:50: [INFO] Info10 {test 10}
+default.log2018/05/29 10:21:54 log_test.go:51: [DEBUG] Debug

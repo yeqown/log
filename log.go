@@ -1,9 +1,9 @@
 // Package log
 //
-// this log is based `https://github.com/silenceper/log`
-// just more functions:
+// this log is based `https://github.com/silenceper/log` but more functions:
 //
 // 1. can be set to output to file
+//
 // 2. log file can splited into files day by day, just like `app.20060102.log`
 //
 package log
@@ -22,16 +22,16 @@ type (
 )
 
 const (
-	LevelFatal = iota
-	LevelError
-	LevelWarning
-	LevelInfo
-	LevelDebug
+	LevelFatal   = iota // FatalLevel
+	LevelError          // ErrorLevel
+	LevelWarning        // WarningLevel
+	LevelInfo           // InfoLevel
+	LevelDebug          // DebugLevel
 )
 
 var (
-	_log           *logger   = NewLogger()
-	lstLogFileDate time.Time = time.Now()
+	_log           *logger   = NewLogger() // default logger
+	lstLogFileDate time.Time = time.Now()  // last date time when split logfile
 )
 
 func Fatal(args ...interface{}) {
@@ -123,6 +123,7 @@ func (l *logger) SetFileOutput(logPath, filename string) {
 	}(logPath, filename)
 }
 
+// the most based function to log
 func (l *logger) Output(level Level, s string) {
 	if l.logLevel < level {
 		return
