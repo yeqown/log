@@ -1,12 +1,11 @@
-/*
- * this log is based `https://github.com/silenceper/log`
- * just more functions:
- *
- * 1. can be set to output to file
- * 2. log file can splited into files day by day, just like `app.20060102.log`
- *
- * if want to log to file you must NewLogger and SetFileOutput
- */
+// Package log
+//
+// this log is based `https://github.com/silenceper/log`
+// just more functions:
+//
+// 1. can be set to output to file
+// 2. log file can splited into files day by day, just like `app.20060102.log`
+//
 package log
 
 import (
@@ -31,12 +30,12 @@ const (
 )
 
 var (
-	_log           *logger   = New()
+	_log           *logger   = NewLogger()
 	lstLogFileDate time.Time = time.Now()
 )
 
-func Fatal(s string) {
-	_log.Output(LevelFatal, s)
+func Fatal(args ...interface{}) {
+	_log.Output(LevelFatal, fmt.Sprint(args...))
 	os.Exit(1)
 }
 
@@ -45,32 +44,32 @@ func Fatalf(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-func Error(s string) {
-	_log.Output(LevelError, s)
+func Error(args ...interface{}) {
+	_log.Output(LevelError, fmt.Sprint(args...))
 }
 
 func Errorf(format string, v ...interface{}) {
 	_log.Output(LevelError, fmt.Sprintf(format, v...))
 }
 
-func Warn(s string) {
-	_log.Output(LevelWarning, s)
+func Warn(args ...interface{}) {
+	_log.Output(LevelWarning, fmt.Sprint(args...))
 }
 
 func Warnf(format string, v ...interface{}) {
 	_log.Output(LevelWarning, fmt.Sprintf(format, v...))
 }
 
-func Info(s string) {
-	_log.Output(LevelInfo, s)
+func Info(args ...interface{}) {
+	_log.Output(LevelInfo, fmt.Sprint(args...))
 }
 
 func Infof(format string, v ...interface{}) {
 	_log.Output(LevelInfo, fmt.Sprintf(format, v...))
 }
 
-func Debug(s string) {
-	_log.Output(LevelDebug, s)
+func Debug(args ...interface{}) {
+	_log.Output(LevelDebug, fmt.Sprint(args...))
 }
 
 func Debugf(format string, v ...interface{}) {
@@ -81,11 +80,14 @@ func SetLogLevel(level Level) {
 	_log.SetLogLevel(level)
 }
 
+func SetFileOutput(logPath, filename string) {
+	_log.SetFileOutput(logPath, filename)
+}
+
 type logger struct {
-	std_log  *log.Logger
-	file_log *log.Logger
-	//小于等于该级别的level才会被记录
-	logLevel Level
+	std_log  *log.Logger // os.stderr
+	file_log *log.Logger // 文件
+	logLevel Level       // 小于等于该级别的level才会被记录
 }
 
 //NewLogger 实例化，供自定义
@@ -97,22 +99,11 @@ func NewLogger() *logger {
 	}
 }
 
-//New 实例化，供外部直接调用 log.XXXX
-func New() *logger {
-	return &logger{
-		std_log:  log.New(os.Stderr, "", log.Lshortfile|log.LstdFlags),
-		file_log: nil,
-		logLevel: LevelDebug,
-	}
-}
-
-/*
- * @logPath string
- * @filename string
- */
+// SetFileOutput to set file output and create new croutine
+// to recv time.Ticker with 1 min interval.
 func (l *logger) SetFileOutput(logPath, filename string) {
 	file := openOrCreate(assembleFilepath(logPath, filename))
-	l.file_log = log.New(file, "", log.Lshortfile|log.LstdFlags)
+	l.file_log = log.New(file, filename, log.Lshortfile|log.LstdFlags)
 
 	// new croutine to split file
 	go func(logPath, filename string) {
@@ -120,14 +111,13 @@ func (l *logger) SetFileOutput(logPath, filename string) {
 		for true {
 			select {
 			case <-ticker.C:
-				now := time.Now()
-				// l.Info("timer calling")
-				if shouldSplit() {
-					renameLogfile(logPath, filename)
-					file := openOrCreate(assembleFilepath(logPath, filename))
-					l.file_log = log.New(file, "", log.Lshortfile|log.LstdFlags)
-					lstLogFileDate = now
+				if !timeToSplit() {
+					continue
 				}
+				renameLogfile(logPath, filename)
+				file := openOrCreate(assembleFilepath(logPath, filename))
+				l.file_log = log.New(file, "", log.Lshortfile|log.LstdFlags)
+				lstLogFileDate = time.Now()
 			}
 		}
 	}(logPath, filename)
@@ -158,20 +148,24 @@ func (l *logger) Output(level Level, s string) {
 	}
 	std_s := fmt.Sprintf(formatStr, s)
 	file_s := fmt.Sprintf(formatFileStr, s)
-	// output to stderr
+
+	// output to os.stderr
 	if err := l.std_log.Output(3, std_s); err != nil {
 		panic(err)
 	}
+
 	// output to file
-	if l.file_log != nil {
-		if err := l.file_log.Output(3, file_s); err != nil {
-			panic(err)
-		}
+	if l.file_log == nil {
+		return
+	}
+
+	if err := l.file_log.Output(3, file_s); err != nil {
+		panic(err)
 	}
 }
 
-func (l *logger) Fatal(s string) {
-	l.Output(LevelFatal, s)
+func (l *logger) Fatal(args ...interface{}) {
+	l.Output(LevelFatal, fmt.Sprint(args...))
 	os.Exit(1)
 }
 
@@ -180,32 +174,32 @@ func (l *logger) Fatalf(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-func (l *logger) Error(s string) {
-	l.Output(LevelError, s)
+func (l *logger) Error(args ...interface{}) {
+	l.Output(LevelError, fmt.Sprint(args...))
 }
 
 func (l *logger) Errorf(format string, v ...interface{}) {
 	l.Output(LevelError, fmt.Sprintf(format, v...))
 }
 
-func (l *logger) Warn(s string) {
-	l.Output(LevelWarning, s)
+func (l *logger) Warn(args ...interface{}) {
+	l.Output(LevelWarning, fmt.Sprint(args...))
 }
 
 func (l *logger) Warnf(format string, v ...interface{}) {
 	l.Output(LevelWarning, fmt.Sprintf(format, v...))
 }
 
-func (l *logger) Info(s string) {
-	l.Output(LevelInfo, s)
+func (l *logger) Info(args ...interface{}) {
+	l.Output(LevelInfo, fmt.Sprint(args...))
 }
 
 func (l *logger) Infof(format string, v ...interface{}) {
 	l.Output(LevelInfo, fmt.Sprintf(format, v...))
 }
 
-func (l *logger) Debug(s string) {
-	l.Output(LevelDebug, s)
+func (l *logger) Debug(args ...interface{}) {
+	l.Output(LevelDebug, fmt.Sprint(args...))
 }
 
 func (l *logger) Debugf(format string, v ...interface{}) {
@@ -221,7 +215,6 @@ func (l *logger) SetLogLevel(level Level) {
 // logger utils functions
 //
 //////////////////////////////////////
-
 func openOrCreate(filepath string) *os.File {
 	file := new(os.File)
 	var err error
@@ -258,7 +251,7 @@ func renameLogfile(logPath, filename string) {
 	}
 }
 
-func shouldSplit() bool {
+func timeToSplit() bool {
 	now := time.Now()
 	if now.Day() != lstLogFileDate.Day() {
 		return true

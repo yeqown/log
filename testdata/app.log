@@ -1,33 +1,4 @@
-2018/04/21 18:27:05 log_test.go:15: [INFO] Info
-2018/04/21 18:27:05 log_test.go:16: [ERROR] Error
-2018/04/21 18:27:05 log_test.go:17: [DEBUG] Debug
-2018/04/21 18:27:05 log_test.go:18: [WARN] Warn
-2018/04/21 18:28:34 log_test.go:15: [INFO] Info
-2018/04/21 18:28:34 log_test.go:16: [ERROR] Error
-2018/04/21 18:28:34 log_test.go:17: [DEBUG] Debug
-2018/04/21 18:28:34 log_test.go:18: [WARN] Warn
-2018/04/21 18:29:46 log_test.go:15: [INFO] Info
-2018/04/21 18:29:46 log_test.go:16: [ERROR] Error
-2018/04/21 18:29:46 log_test.go:17: [DEBUG] Debug
-2018/04/21 18:29:46 log_test.go:18: [WARN] Warn
-2018/04/21 19:08:04 log_test.go:12: [INFO] Info
-2018/04/21 19:08:04 log_test.go:13: [ERROR] Error
-2018/04/21 19:08:04 log_test.go:14: [DEBUG] Debug
-2018/04/21 19:08:04 log_test.go:15: [WARN] Warn
-2018/04/21 19:08:05 log.go:125: [INFO] timer calling
-2018/04/21 19:11:55 log_test.go:12: [INFO] Info
-2018/04/21 19:11:55 log_test.go:13: [ERROR] Error
-2018/04/21 19:11:55 log_test.go:14: [DEBUG] Debug
-2018/04/21 19:11:55 log_test.go:15: [WARN] Warn
-2018/04/21 19:11:56 log.go:125: [INFO] timer calling
-2018/04/21 19:11:57 log.go:125: [INFO] timer calling
-2018/04/21 19:11:58 log.go:125: [INFO] timer calling
-2018/04/21 19:11:59 log.go:125: [INFO] timer calling
-2018/04/21 19:12:00 log.go:125: [INFO] timer calling
-2018/04/21 19:12:01 log.go:125: [INFO] timer calling
-2018/04/21 19:12:02 log.go:125: [INFO] timer calling
-2018/04/21 19:12:03 log.go:125: [INFO] timer calling
-2018/04/21 19:14:54 log_test.go:12: [INFO] Info
-2018/04/21 19:14:54 log_test.go:13: [ERROR] Error
-2018/04/21 19:14:54 log_test.go:14: [DEBUG] Debug
-2018/04/21 19:14:54 log_test.go:15: [WARN] Warn
+app2018/05/29 10:21:54 log_test.go:12: [ERROR] Error
+app2018/05/29 10:21:54 log_test.go:13: [WARN] Warn
+app2018/05/29 10:21:54 log_test.go:14: [INFO] Info
+app2018/05/29 10:21:54 log_test.go:15: [DEBUG] Debug

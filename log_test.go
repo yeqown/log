@@ -2,24 +2,19 @@ package log
 
 import (
 	"testing"
-	"time"
 )
 
 func Test_NewLogger(t *testing.T) {
 	l := NewLogger()
 	l.SetFileOutput("./testdata", "app")
 
-	l.Info("Info")
+	// l.Fatal("faltal", 2, 3)
 	l.Error("Error")
-	l.Debug("Debug")
 	l.Warn("Warn")
+	l.Info("Info")
+	l.Debug("Debug")
 
-	time.Sleep(100 * time.Second)
-	//
-	// for i := 0; i < 100; i++ {
-	//	l.Info("info loop")
-	//	time.Sleep(1 * time.Nanosecond)
-	// }
+	t.Log(timeToSplit())
 }
 
 func Test_FileSplit(t *testing.T) {
@@ -36,4 +31,22 @@ func Test_FileSplit(t *testing.T) {
 	openOrCreate(assembleFilepath(logPath, filename))
 	l.SetFileOutput(logPath, filename)
 	l.Info("split after")
+}
+
+func Test_DefaultLoggerOutput(t *testing.T) {
+	SetFileOutput("./testdata", "default.log")
+
+	a := new(int)
+	*a = 10
+
+	b := struct {
+		Name string
+		Age  int
+	}{"test", 10}
+
+	// Fatal("faltal", 2, 3)
+	Error("Error")
+	Warn("Warn")
+	Info("Info", *a, b)
+	Debug("Debug")
 }
