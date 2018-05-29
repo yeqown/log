@@ -90,7 +90,7 @@ type logger struct {
 	logLevel Level       // 小于等于该级别的level才会被记录
 }
 
-//NewLogger 实例化，供自定义
+// NewLogger 实例化，供自定义
 func NewLogger() *logger {
 	return &logger{
 		std_log:  log.New(os.Stderr, "", log.Lshortfile|log.LstdFlags),
