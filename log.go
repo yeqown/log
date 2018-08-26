@@ -85,16 +85,16 @@ func SetFileOutput(logPath, filename string) {
 }
 
 type logger struct {
-	std_log  *log.Logger // os.stderr
-	file_log *log.Logger // 文件
+	stdLog   *log.Logger // os.stderr
+	fileLog  *log.Logger // 文件
 	logLevel Level       // 小于等于该级别的level才会被记录
 }
 
 // NewLogger 实例化，供自定义
 func NewLogger() *logger {
 	return &logger{
-		std_log:  log.New(os.Stderr, "", log.Lshortfile|log.LstdFlags),
-		file_log: nil,
+		stdLog:   log.New(os.Stderr, "", log.Llongfile|log.LstdFlags),
+		fileLog:  nil,
 		logLevel: LevelDebug,
 	}
 }
@@ -103,7 +103,7 @@ func NewLogger() *logger {
 // to recv time.Ticker with 1 min interval.
 func (l *logger) SetFileOutput(logPath, filename string) {
 	file := openOrCreate(assembleFilepath(logPath, filename))
-	l.file_log = log.New(file, filename, log.Lshortfile|log.LstdFlags)
+	l.fileLog = log.New(file, filename, log.Llongfile|log.LstdFlags)
 
 	// new croutine to split file
 	go func(logPath, filename string) {
@@ -116,7 +116,7 @@ func (l *logger) SetFileOutput(logPath, filename string) {
 				}
 				renameLogfile(logPath, filename)
 				file := openOrCreate(assembleFilepath(logPath, filename))
-				l.file_log = log.New(file, "", log.Lshortfile|log.LstdFlags)
+				l.fileLog = log.New(file, "", log.Lshortfile|log.LstdFlags)
 				lstLogFileDate = time.Now()
 			}
 		}
@@ -147,20 +147,23 @@ func (l *logger) Output(level Level, s string) {
 		formatStr = "\033[36m[DEBUG]\033[0m %s"
 		formatFileStr = "[DEBUG] %s"
 	}
-	std_s := fmt.Sprintf(formatStr, s)
-	file_s := fmt.Sprintf(formatFileStr, s)
+	stdFormat := fmt.Sprintf(formatStr, s)
+	fileFormat := fmt.Sprintf(formatFileStr, s)
+
+	file, function, line := findCaller(5)
+	println(file, function, line)
 
 	// output to os.stderr
-	if err := l.std_log.Output(3, std_s); err != nil {
+	if err := l.stdLog.Output(3, stdFormat); err != nil {
 		panic(err)
 	}
 
 	// output to file
-	if l.file_log == nil {
+	if l.fileLog == nil {
 		return
 	}
 
-	if err := l.file_log.Output(3, file_s); err != nil {
+	if err := l.fileLog.Output(3, fileFormat); err != nil {
 		panic(err)
 	}
 }
