@@ -1,4 +1,4 @@
-// Package log
+// Package log .
 //
 // this log is based `https://github.com/silenceper/log` but more functions:
 //
@@ -18,15 +18,22 @@ import (
 )
 
 type (
+	// Level of log
 	Level int
 )
 
 const (
-	LevelFatal   = iota // FatalLevel
-	LevelError          // ErrorLevel
-	LevelWarning        // WarningLevel
-	LevelInfo           // InfoLevel
-	LevelDebug          // DebugLevel
+
+	// LevelFatal .
+	LevelFatal Level = iota
+	// LevelError .
+	LevelError
+	// LevelWarning .
+	LevelWarning
+	// LevelInfo .
+	LevelInfo
+	// LevelDebug .
+	LevelDebug
 )
 
 var (
@@ -34,52 +41,64 @@ var (
 	lstLogFileDate time.Time = time.Now()  // last date time when split logfile
 )
 
+// Fatal .
 func Fatal(args ...interface{}) {
 	_log.Output(LevelFatal, fmt.Sprint(args...))
 	os.Exit(1)
 }
 
+// Fatalf .
 func Fatalf(format string, v ...interface{}) {
 	_log.Output(LevelFatal, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
+// Error .
 func Error(args ...interface{}) {
 	_log.Output(LevelError, fmt.Sprint(args...))
 }
 
+// Errorf .
 func Errorf(format string, v ...interface{}) {
 	_log.Output(LevelError, fmt.Sprintf(format, v...))
 }
 
+// Warn .
 func Warn(args ...interface{}) {
 	_log.Output(LevelWarning, fmt.Sprint(args...))
 }
 
+// Warnf .
 func Warnf(format string, v ...interface{}) {
 	_log.Output(LevelWarning, fmt.Sprintf(format, v...))
 }
 
+// Info .
 func Info(args ...interface{}) {
 	_log.Output(LevelInfo, fmt.Sprint(args...))
 }
 
+// Infof .
 func Infof(format string, v ...interface{}) {
 	_log.Output(LevelInfo, fmt.Sprintf(format, v...))
 }
 
+// Debug .
 func Debug(args ...interface{}) {
 	_log.Output(LevelDebug, fmt.Sprint(args...))
 }
 
+// Debugf .
 func Debugf(format string, v ...interface{}) {
 	_log.Output(LevelDebug, fmt.Sprintf(format, v...))
 }
 
+// SetLogLevel .
 func SetLogLevel(level Level) {
 	_log.SetLogLevel(level)
 }
 
+// SetFileOutput .
 func SetFileOutput(logPath, filename string) {
 	_log.SetFileOutput(logPath, filename)
 }
@@ -93,7 +112,7 @@ type logger struct {
 // NewLogger 实例化，供自定义
 func NewLogger() *logger {
 	return &logger{
-		stdLog:   log.New(os.Stderr, "", log.Llongfile|log.LstdFlags),
+		stdLog:   log.New(os.Stderr, "", log.Lshortfile|log.LstdFlags),
 		fileLog:  nil,
 		logLevel: LevelDebug,
 	}
@@ -103,7 +122,7 @@ func NewLogger() *logger {
 // to recv time.Ticker with 1 min interval.
 func (l *logger) SetFileOutput(logPath, filename string) {
 	file := openOrCreate(assembleFilepath(logPath, filename))
-	l.fileLog = log.New(file, filename, log.Llongfile|log.LstdFlags)
+	l.fileLog = log.New(file, filename, log.Lshortfile|log.LstdFlags)
 
 	// new croutine to split file
 	go func(logPath, filename string) {
@@ -150,8 +169,8 @@ func (l *logger) Output(level Level, s string) {
 	stdFormat := fmt.Sprintf(formatStr, s)
 	fileFormat := fmt.Sprintf(formatFileStr, s)
 
-	file, function, line := findCaller(5)
-	println(file, function, line)
+	// file, function, line := findCaller(5)
+	// println(file, function, line)
 
 	// output to os.stderr
 	if err := l.stdLog.Output(3, stdFormat); err != nil {
