@@ -1,4 +1,0 @@
-app2018/05/29 10:21:54 log_test.go:12: [ERROR] Error
-app2018/05/29 10:21:54 log_test.go:13: [WARN] Warn
-app2018/05/29 10:21:54 log_test.go:14: [INFO] Info
-app2018/05/29 10:21:54 log_test.go:15: [DEBUG] Debug
