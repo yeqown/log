@@ -125,11 +125,11 @@ func (l *Logger) newEntry() *entry {
 	e, ok := l.entryPool.Get().(*entry)
 	if ok {
 		e.logger = l
-		e.lv = l.opt.lv
-		e.out = l.opt.w
+		e.lv = l.opt.level()
+		e.out = l.opt.writer()
 		e.fields = make(Fields, 6)
 		copyFields(e.fields, l.opt.globalFields)
-		e.formatter = &TextFormatter{isTerminal: l.opt.isTerminal}
+		e.formatter = &TextFormatter{isTerminal: l.opt.terminal()}
 	}
 
 	return newEntry(l)

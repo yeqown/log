@@ -11,9 +11,10 @@ type embed struct {
 
 func main() {
 	// using builtin logger
-	log.Info(1, 2, 3, 4, 5)
-	log.Infof("this is format: %d", 2)
-
+	log.Debug("this is a Debug log")
+	log.Info("this is a Info log")
+	log.Warn("this is a Warn log")
+	log.Error("this is a Error log")
 	log.
 		WithField("key1", "value1").
 		WithFields(log.Fields{
@@ -27,12 +28,19 @@ func main() {
 		}).Error("test error")
 
 	// using new logger
+	newLoggerOuput()
+}
+
+func newLoggerOuput() {
 	logger, _ := log.NewLogger(
-		log.WithLevel(log.LevelError),
+		log.WithLevel(log.LevelInfo),
 		log.WithGlobalFields(log.Fields{"global_key": "global_value"}),
 	)
-	logger.Info(1, 2, 3, 4, 5)
-	logger.Infof("this is format: %d", 2)
+
+	logger.Debug("this is a Debug log") // this will not output
+	logger.Info("this is a Info log")
+	logger.Warn("this is a Warn log")
+	logger.Error("this is a Error log")
 	logger.WithField("logger", "it's me").
 		WithFields(log.Fields{
 			"key2": "value2",

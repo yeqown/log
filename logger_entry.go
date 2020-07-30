@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -20,7 +21,7 @@ type entry struct {
 func newEntry(l *Logger) *entry {
 	e := entry{
 		logger: l,
-		out:    l.opt.w,
+		out:    l.opt.writer(),
 		lv:     l.opt.lv,
 		formatter: &TextFormatter{
 			isTerminal: l.opt.isTerminal,
@@ -106,11 +107,10 @@ func (e *entry) output(lv Level, msg string) {
 	}
 
 	now := time.Now()
-	file, fn, line := findCaller(0)
+	frm := getCaller()
 	e.fixedField = &fixedField{
-		File:          file,
-		Fn:            fn,
-		Line:          line,
+		File:          frm.File + ":" + strconv.Itoa(frm.Line),
+		Fn:            frm.Function,
 		Timestamp:     now.Unix(),
 		FormattedTime: now.Format(time.RFC3339),
 	}

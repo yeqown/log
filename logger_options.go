@@ -15,12 +15,43 @@ type LoggerOption func(lo *options) error
 
 // logger options to construct logger
 type options struct {
-	w          io.Writer // writer
-	lv         Level     // only log.LV is lte than lv, then it would be written into Writer
-	isTerminal bool      // to mark the output is file or stdout
-	stdout     bool      // output to stdout, only affect when file log mode
+	// variables
+	w            io.Writer // writer
+	lv           Level     // only log.LV is lte than lv, then it would be written into Writer
+	globalFields Fields    // global fields
 
-	globalFields Fields // global fields
+	// flags
+	isTerminal bool // to mark the output is file or stdout
+	stdout     bool // output to stdout, only affect when file log mode
+
+}
+
+func (o *options) level() Level {
+	if o == nil {
+		return LevelDebug
+	}
+
+	return o.lv
+}
+
+func (o *options) terminal() bool {
+	if o == nil {
+		return true
+	}
+
+	return o.isTerminal
+}
+
+func (o *options) writer() io.Writer {
+	if o == nil {
+		return os.Stdout
+	}
+
+	if !o.isTerminal && o.stdout {
+		return io.MultiWriter(os.Stdout, o.w)
+	}
+
+	return o.w
 }
 
 // defaultLoggerOption sets os.Stdout as write, debug level,

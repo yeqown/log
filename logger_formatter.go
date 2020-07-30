@@ -57,7 +57,6 @@ func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
 func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField) {
 	appendKeyValue(b, "file", fixed.File)
 	appendKeyValue(b, "fn", fixed.Fn)
-	appendKeyValue(b, "line", fixed.Line)
 	appendKeyValue(b, "timestamp", fixed.Timestamp)
 	appendKeyValue(b, "formatted_time", fixed.FormattedTime)
 }

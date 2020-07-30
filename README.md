@@ -1,5 +1,7 @@
 ## log
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/yeqown/log)](https://goreportcard.com/report/github.com/yeqown/log) [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/log)
+
 a lite golang log library, easy to get start and no dependency.
 
 > TODO: add badge (goreport card, MIT, godoc)
@@ -85,6 +87,12 @@ Here is a broken change from `d68941c` to `v1.x`. `v1.x` is advised to use.
 
 Here are some shots of using example.
 
-> TODO: add shots
->
-![screenshot](./assets/screenshot.png)
+##### 1. stdout shots
+
+![shot1](./assets/shot1.png)
+
+##### 2. file shots
+
+> output to stdout and file both.
+
+![shot2](./assets/shot2.png)
