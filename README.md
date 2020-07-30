@@ -4,8 +4,6 @@
 
 a lite golang log library, easy to get start and no dependency.
 
-> TODO: add badge (goreport card, MIT, godoc)
-
 ### Features
 
 [x] `consolt` and `filelog` support 
