@@ -1,29 +1,8 @@
-## log
-
-a lite golang log library, easy to get start and no dependency.
-
-> TODO: add badge (goreport card, MIT, godoc)
-
-### Features
-
-[x] `consolt` and `filelog` support 
-
-[x] `WithFields` support
-
-[x] lite and easy to use
-
-### Install 
-
-```sh
-go get -u github.com/yeqown/log 
-```
-
-### Quick Start
-
-There is sample code of using `log`.
-
-```go
 package main
+
+import (
+	"github.com/yeqown/log"
+)
 
 type embed struct {
 	FieldA string
@@ -71,20 +50,4 @@ func main() {
 				FieldB: 112091,
 			},
 		}).Error("test error")
-    // [Error] file="/Users/yeqown/projects/opensource/log/logger_entry.go" fn="github.com/yeqown/log.(*entry).output" 
-    // line="109" timestamp="1596090798" formatted_time="2020-07-30T14:33:18+08:00" embed="{aaa 112091}" 
-    // embed_ptr="&{aaa 112091}" global_key="global_value" key2="value2" logger="it's me" msg="test error"
 }
-```
-
-### Migrate
-
-Here is a broken change from `d68941c` to `v1.x`. `v1.x` is advised to use.
-
-### shots
-
-Here are some shots of using example.
-
-> TODO: add shots
->
-![screenshot](./assets/screenshot.png)
