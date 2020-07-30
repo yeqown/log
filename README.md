@@ -1,67 +1,96 @@
-# log
-golang logger based `log`
+## log
 
-## Doc
-ref to: [https://godoc.org/github.com/yeqown/log](https://godoc.org/github.com/yeqown/log)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yeqown/log)](https://goreportcard.com/report/github.com/yeqown/log) [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/log)
 
-## Usage
+a lite golang log library, easy to get start and no dependency.
 
-sample-1.go
-```golang
-import (
-  "github.com/yeqown/log"
-)
+### Features
+
+[x] `consolt` and `filelog` support 
+
+[x] `WithFields` support
+
+[x] lite and easy to use
+
+### Install 
+
+```sh
+go get -u github.com/yeqown/log 
+```
+
+### Quick Start
+
+There is sample code of using `log`.
+
+```go
+package main
+
+type embed struct {
+	FieldA string
+	FieldB int
+}
 
 func main() {
-  intptr := new(int)
-  *intprt = 9999
+	// using builtin logger
+	log.Info(1, 2, 3, 4, 5)
+	log.Infof("this is format: %d", 2)
 
-  struct_var := struct {
-    Name string
-    Age  int
-  }{"Tonn", 24}
+	log.
+		WithField("key1", "value1").
+		WithFields(log.Fields{
+			"key2": "value2",
+			"key3": "value3",
+			"key4": "value4",
+			"key5": "value5",
+			"key6": "value6",
+			"key7": "value7",
+			"key8": "value8",
+		}).Error("test error")
 
-  // to set file output for default logger
-  SetFileOutput("/path/to/logfile", "default")
-
-  // also support Debug, Warn, Fatal, Error
-  log.Info("this is a struct var: ", struct_var)
-  log.Info("this is a int ptr and var: ", a, *a)
-  log.Infof("%d is not equal to %d", 1, 2)
+	// using new logger
+	logger, _ := log.NewLogger(
+		log.WithLevel(log.LevelError),
+		log.WithGlobalFields(log.Fields{"global_key": "global_value"}),
+	)
+	logger.Info(1, 2, 3, 4, 5)
+	logger.Infof("this is format: %d", 2)
+	logger.WithField("logger", "it's me").
+		WithFields(log.Fields{
+			"key2": "value2",
+			"key3": "value3",
+			"key4": "value4",
+			"key5": "value5",
+			"key6": "value6",
+			"key7": "value7",
+			"embed": embed{
+				FieldA: "aaa",
+				FieldB: 112091,
+			},
+			"embed_ptr": &embed{
+				FieldA: "aaa",
+				FieldB: 112091,
+			},
+		}).Error("test error")
+    // [Error] file="/Users/yeqown/projects/opensource/log/logger_entry.go" fn="github.com/yeqown/log.(*entry).output" 
+    // line="109" timestamp="1596090798" formatted_time="2020-07-30T14:33:18+08:00" embed="{aaa 112091}" 
+    // embed_ptr="&{aaa 112091}" global_key="global_value" key2="value2" logger="it's me" msg="test error"
 }
 ```
 
-sample-2.go
+### Migrate
 
-```golang
-import (
-  "github.com/yeqown/log"
-)
+Here is a broken change from `d68941c` to `v1.x`. `v1.x` is advised to use.
 
-func main() {
-  // to make self logger
-  l := log.NewLogger()
+### shots
 
-  intptr := new(int)
-  *intprt = 9999
+Here are some shots of using example.
 
-  struct_var := struct {
-    Name string
-    Age  int
-  }{"Tonn", 24}
+##### 1. stdout shots
 
-  // to set file output for default logger
-  l.SetFileOutput("/path/to/logfile", "app")
+![shot1](./assets/shot1.png)
 
-  // also support Debug, Warn, Fatal, Error
-  l.Info("this is a struct var: ", struct_var)
-  l.Info("this is a int ptr and var: ", a, *a)
-  l.Infof("%d is not equal to %d", 1, 2)
-}
-```
+##### 2. file shots
 
-## Using preview
+> output to stdout and file both.
 
-> Note: this screenshot is log_test.go output's screenshot.
-
-![screenshot](https://raw.githubusercontent.com/yeqown/log/master/screenshot.png)
+![shot2](./assets/shot2.png)
