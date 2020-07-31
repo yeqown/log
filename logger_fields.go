@@ -9,3 +9,10 @@ type fixedField struct {
 	Timestamp     int64  `json:"timestamp"`     // timestamp
 	FormattedTime string `json:"formattedTime"` // formatted time
 }
+
+// copyFields copy all fields in src to dst
+func copyFields(dst, src Fields) {
+	for k := range src {
+		dst[k] = src[k]
+	}
+}

@@ -14,8 +14,8 @@ type entry struct {
 	formatter Formatter // format entry to log
 	lv        Level     // the lowest lv which could be log
 
-	fixedField *fixedField            // fixed fields to log
-	fields     map[string]interface{} // fields
+	fixedField *fixedField // fixed fields to log
+	fields     Fields      // fields
 }
 
 func newEntry(l *Logger) *entry {
@@ -38,8 +38,9 @@ func newEntry(l *Logger) *entry {
 
 func (e *entry) WithFields(fields Fields) *entry {
 	dst := make(Fields, len(fields)+len(e.fields))
-	copyFields(dst, fields)
+	// FIXED: copy entry's fields at first, then copy newer fields
 	copyFields(dst, e.fields)
+	copyFields(dst, fields)
 
 	return &entry{
 		logger:    e.logger,
@@ -138,12 +139,5 @@ func (e *entry) output(lv Level, msg string) {
 	// write into writer
 	if _, err = e.out.Write(data); err != nil {
 		panic(err)
-	}
-}
-
-// copyFields copy all fields in src to dst
-func copyFields(dst, src Fields) {
-	for k := range src {
-		dst[k] = src[k]
 	}
 }

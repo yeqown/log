@@ -89,10 +89,13 @@ func WithGlobalFields(fields Fields) LoggerOption {
 	}
 }
 
+// WithCustomWriter using custom writer to log
 func WithCustomWriter(w io.Writer) LoggerOption {
 	return func(lo *options) error {
 		if w != nil {
 			lo.w = w
+			lo.isTerminal = false
+			lo.stdout = false
 		}
 
 		return nil
