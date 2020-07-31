@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bytes"
 	"strconv"
 	"sync"
 	"testing"
@@ -9,14 +10,87 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NewLogger(t *testing.T) {
-	logger, err := NewLogger()
+func Test_NewLogger_WithWriter(t *testing.T) {
+	b := &bytes.Buffer{}
+	logger, err := NewLogger(
+		WithCustomWriter(b),
+	)
 	assert.Nil(t, err)
 
-	logger.Error("Error")
-	logger.Warn("Warn")
-	logger.Info("Info")
+	logger.
+		WithField("key1", "value1").
+		WithFields(Fields{"key2": "value2"}).
+		Info("fields test")
+	assert.Contains(t, b.String(), "key1")
+	assert.Contains(t, b.String(), "value1")
+	assert.Contains(t, b.String(), "key2")
+	assert.Contains(t, b.String(), "value2")
+}
+
+func Test_NewLogger_WithGlobalFields(t *testing.T) {
+	b := &bytes.Buffer{}
+	logger, err := NewLogger(
+		WithCustomWriter(b),
+		WithGlobalFields(Fields{"global_key": "global_value"}),
+	)
+	assert.Nil(t, err)
+
+	// case 0
+	logger.
+		WithField("key1", "value2222").Info("fields test")
+	assert.Contains(t, b.String(), "value2222")
+	assert.Contains(t, b.String(), "global_value")
+
+	b.Reset()
+	assert.NotContains(t, b.String(), "value2222")
+	assert.NotContains(t, b.String(), "global_value")
+
+	// case 1 if duplicated the key with global key, then replace the global key
+	logger.WithFields(Fields{
+		"global_key": "global_valueless",
+		"key2":       "value2222",
+	}).Info("fields test")
+	t.Log(b.String())
+	assert.Contains(t, b.String(), "global_valueless")
+	assert.Contains(t, b.String(), "value2222")
+}
+
+func Test_Logger_SetLevel(t *testing.T) {
+	b := &bytes.Buffer{}
+	logger, err := NewLogger(
+		WithCustomWriter(b),
+	)
+	assert.Nil(t, err)
+
+	// set level
+	logger.SetLogLevel(LevelWarning)
+
 	logger.Debug("Debug")
+	assert.NotContains(t, b.String(), "Debug")
+	logger.Info("Info")
+	assert.NotContains(t, b.String(), "Info")
+	logger.Warn("Warn")
+	assert.Contains(t, b.String(), "Warn")
+	logger.Error("Error")
+	assert.Contains(t, b.String(), "Error")
+}
+
+func Test_Logger_WithLevel(t *testing.T) {
+	b := &bytes.Buffer{}
+	logger, err := NewLogger(
+		WithCustomWriter(b),
+		WithLevel(LevelWarning),
+	)
+	assert.Nil(t, err)
+
+	logger.Debug("Debug")
+	assert.NotContains(t, b.String(), "Debug")
+	logger.Info("Info")
+	assert.NotContains(t, b.String(), "Info")
+	logger.Warn("Warn")
+	assert.Contains(t, b.String(), "Warn")
+	logger.Error("Error")
+	assert.Contains(t, b.String(), "Error")
 }
 
 func Test_FileSplit(t *testing.T) {
