@@ -23,7 +23,6 @@ type options struct {
 	// flags
 	isTerminal bool // to mark the output is file or stdout
 	stdout     bool // output to stdout, only affect when file log mode
-
 }
 
 func (o *options) level() Level {
@@ -90,6 +89,16 @@ func WithGlobalFields(fields Fields) LoggerOption {
 	}
 }
 
+func WithCustomWriter(w io.Writer) LoggerOption {
+	return func(lo *options) error {
+		if w != nil {
+			lo.w = w
+		}
+
+		return nil
+	}
+}
+
 // WithFileLog store log into file, if autoRotate is set,
 // it will start a goroutine to split log file by day.
 // TODO(@yeqown): using time round instead of ticker
@@ -121,8 +130,8 @@ func WithFileLog(file string, autoRotate bool) LoggerOption {
 						continue
 					}
 					// open new file
-					if lo.w, err = open(assembleFilename(dir, file)); err != nil {
-						fmt.Printf("open failed file: %s, err: %v \n", assembleFilename(dir, file), err)
+					if lo.w, err = open(assembleFilename(dir, file, true)); err != nil {
+						fmt.Printf("open failed file: %s, err: %v \n", assembleFilename(dir, file, true), err)
 						continue
 					}
 

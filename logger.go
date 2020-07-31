@@ -159,13 +159,14 @@ func (l *Logger) WithFields(fields Fields) *entry {
 }
 
 // open a file to log
+// FIXED: wrong permission of folder and file
 func open(file string) (fd *os.File, err error) {
 	dir, _ := filepath.Split(file)
-	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+	if err = os.MkdirAll(dir, 0777); err != nil {
 		return nil, err
 	}
 
-	if fd, err = os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_RDWR, os.ModePerm); err != nil {
+	if fd, err = os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666); err != nil {
 		return nil, err
 	}
 
@@ -173,10 +174,10 @@ func open(file string) (fd *os.File, err error) {
 }
 
 // rename file
-func rename(logPath, filename string) error {
+func rename(dir, filename string) error {
 	return os.Rename(
-		assembleFilename(logPath, filename),                 // old name
-		assembleFilename(logPath, rotateFilename(filename)), // new name
+		assembleFilename(dir, filename, true),                  // old name
+		assembleFilename(dir, rotateFilename(filename), false), // new name
 	)
 }
 
@@ -185,10 +186,11 @@ func rename(logPath, filename string) error {
 // example:
 // filename = "app"
 // rename to: "app.log"
-func assembleFilename(dir, filename string) string {
-	if !strings.HasSuffix(filename, ".log") {
+func assembleFilename(dir, filename string, autoSuffix bool) string {
+	if autoSuffix && !strings.HasSuffix(filename, ".log") {
 		filename = fmt.Sprintf("%s.log", filename)
 	}
+
 	return path.Join(dir, filename)
 }
 

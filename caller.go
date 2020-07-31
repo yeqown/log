@@ -42,7 +42,7 @@ func getCaller() *runtime.Frame {
 		minimumCallerDepth = knownLogFrames
 	})
 
-	// Restrict the lookback frames to avoid runaway lookups
+	// Restrict the look-back frames to avoid runaway lookups
 	pcs := make([]uintptr, maximumCallerDepth)
 	depth := runtime.Callers(minimumCallerDepth, pcs)
 	frames := runtime.CallersFrames(pcs[:depth])
