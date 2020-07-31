@@ -26,7 +26,7 @@ func newEntry(l *Logger) *entry {
 		formatter: &TextFormatter{
 			isTerminal: l.opt.isTerminal,
 		},
-		fields: make(Fields, 6),
+		fields: make(Fields, 4),
 	}
 
 	if l.opt.globalFields != nil && len(l.opt.globalFields) != 0 {
@@ -107,10 +107,20 @@ func (e *entry) output(lv Level, msg string) {
 	}
 
 	now := time.Now()
+	file := "failed"
+	fn := "failed"
+	line := 0
+
 	frm := getCaller()
+	if frm != nil {
+		file = frm.File
+		fn = frm.Function
+		line = frm.Line
+	}
+
 	e.fixedField = &fixedField{
-		File:          frm.File + ":" + strconv.Itoa(frm.Line),
-		Fn:            frm.Function,
+		File:          file + ":" + strconv.Itoa(line),
+		Fn:            fn,
 		Timestamp:     now.Unix(),
 		FormattedTime: now.Format(time.RFC3339),
 	}

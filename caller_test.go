@@ -21,15 +21,15 @@ func Test_findCaller(t *testing.T) {
 		{
 			name:         "case 0",
 			args:         args{},
-			wantFile:     "log/caller_test.go",
-			wantFunction: "github.com/yeqown/log.testCallFn",
-			wantLine:     10,
+			wantFile:     "caller_test.go",
+			wantFunction: "Test_findCaller",
+			wantLine:     30,
 		},
 	}
 	for _, tt := range tests {
 		frm := log.GetCallerForTest()
+		assert.NotNil(t, frm)
 		gotFile, gotFunction, gotLine := frm.File, frm.Function, frm.Line
-
 		t.Log(gotFile, gotFunction, gotLine)
 		assert.Contains(t, gotFile, tt.wantFile)
 		assert.Contains(t, gotFunction, tt.wantFunction)
