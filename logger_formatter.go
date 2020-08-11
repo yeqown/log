@@ -27,7 +27,7 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 	f.printColoredLevel(b, e)
 
 	// write fixed fields
-	f.printFixedFields(b, e.fixedField)
+	f.printFixedFields(b, e.fixedField, e.callerReporter)
 
 	// write fields
 	keys := make([]string, 0, len(e.fields))
@@ -54,9 +54,11 @@ func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
 }
 
 // printFixedFields
-func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField) {
-	appendKeyValue(b, "file", fixed.File)
-	appendKeyValue(b, "fn", fixed.Fn)
+func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, printCaller bool) {
+	if printCaller {
+		appendKeyValue(b, "file", fixed.File)
+		appendKeyValue(b, "fn", fixed.Fn)
+	}
 	appendKeyValue(b, "timestamp", fixed.Timestamp)
 	appendKeyValue(b, "formatted_time", fixed.FormattedTime)
 }

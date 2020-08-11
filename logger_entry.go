@@ -9,10 +9,11 @@ import (
 )
 
 type entry struct {
-	logger    *Logger   // logger pointer
-	out       io.Writer // write to record
-	formatter Formatter // format entry to log
-	lv        Level     // the lowest lv which could be log
+	logger         *Logger   // logger pointer
+	out            io.Writer // write to record
+	formatter      Formatter // format entry to log
+	lv             Level     // the lowest lv which could be log
+	callerReporter bool      // log caller
 
 	fixedField *fixedField // fixed fields to log
 	fields     Fields      // fields
@@ -26,7 +27,9 @@ func newEntry(l *Logger) *entry {
 		formatter: &TextFormatter{
 			isTerminal: l.opt.isTerminal,
 		},
-		fields: make(Fields, 4),
+		callerReporter: l.opt.callerReporter,
+		fixedField:     nil,
+		fields:         make(Fields, 4),
 	}
 
 	if l.opt.globalFields != nil && len(l.opt.globalFields) != 0 {
@@ -108,22 +111,28 @@ func (e *entry) output(lv Level, msg string) {
 	}
 
 	now := time.Now()
-	file := "failed"
-	fn := "failed"
-	line := 0
-
-	frm := getCaller()
-	if frm != nil {
-		file = frm.File
-		fn = frm.Function
-		line = frm.Line
-	}
 
 	e.fixedField = &fixedField{
-		File:          file + ":" + strconv.Itoa(line),
-		Fn:            fn,
+		//File:          file + ":" + strconv.Itoa(line),
+		//Fn:            fn,
 		Timestamp:     now.Unix(),
 		FormattedTime: now.Format(time.RFC3339),
+	}
+
+	if e.callerReporter {
+		file := "failed"
+		fn := "failed"
+		line := 0
+
+		frm := getCaller()
+		if frm != nil {
+			file = frm.File
+			fn = frm.Function
+			line = frm.Line
+		}
+
+		e.fixedField.File = file + ":" + strconv.Itoa(line)
+		e.fixedField.Fn = fn
 	}
 
 	// setting current lv

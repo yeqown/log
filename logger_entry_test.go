@@ -42,3 +42,27 @@ func Test_entry_WithFields(t *testing.T) {
 	assert.Contains(t, entry2.fields, "foo")
 	assert.Equal(t, "bar updated", entry2.fields["foo"])
 }
+
+func Test_entry_Without_Caller(t *testing.T) {
+	b := &bytes.Buffer{}
+	l, err := NewLogger(
+		WithCustomWriter(b),
+	)
+	assert.Nil(t, err)
+
+	entry := newEntry(l)
+	assert.Equal(t, false, entry.callerReporter)
+	entry.Info("with out caller")
+	assert.NotContains(t, b.String(), "file")
+	assert.NotContains(t, b.String(), "fn")
+
+	b.Reset()
+
+	// open
+	l.SetCallerReporter(true)
+	entry2 := newEntry(l)
+	assert.Equal(t, true, entry2.callerReporter)
+	entry2.Info("with caller")
+	assert.Contains(t, b.String(), "file")
+	assert.Contains(t, b.String(), "fn")
+}
