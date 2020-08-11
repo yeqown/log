@@ -127,6 +127,7 @@ func (l *Logger) newEntry() *entry {
 		e.logger = l
 		e.lv = l.opt.level()
 		e.out = l.opt.writer()
+		e.callerReporter = l.opt.callerReporter
 		e.fields = make(Fields, 6)
 		copyFields(e.fields, l.opt.globalFields)
 		e.formatter = &TextFormatter{isTerminal: l.opt.terminal()}
@@ -142,6 +143,10 @@ func (l *Logger) releaseEntry(e *entry) {
 
 func (l *Logger) SetLogLevel(level Level) {
 	l.opt.lv = level
+}
+
+func (l *Logger) SetCallerReporter(b bool) {
+	l.opt.callerReporter = b
 }
 
 func (l *Logger) WithField(key string, value interface{}) *entry {

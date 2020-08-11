@@ -23,6 +23,8 @@ type options struct {
 	// flags
 	isTerminal bool // to mark the output is file or stdout
 	stdout     bool // output to stdout, only affect when file log mode
+
+	callerReporter bool // log caller or not
 }
 
 func (o *options) level() Level {
@@ -97,6 +99,14 @@ func WithCustomWriter(w io.Writer) LoggerOption {
 			lo.isTerminal = false
 			lo.stdout = false
 		}
+
+		return nil
+	}
+}
+
+func WithReportCaller(b bool) LoggerOption {
+	return func(lo *options) error {
+		lo.callerReporter = b
 
 		return nil
 	}

@@ -128,3 +128,7 @@ func WithFields(fields Fields) *entry {
 func SetLogLevel(level Level) {
 	builtin.SetLogLevel(level)
 }
+
+func SetCallerReporter(b bool) {
+	builtin.SetCallerReporter(b)
+}
