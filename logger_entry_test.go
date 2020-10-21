@@ -2,6 +2,7 @@ package log
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,27 @@ func Test_newEntry(t *testing.T) {
 	assert.Equal(t, l.opt.w, entry.out)
 	assert.Equal(t, l.opt.globalFields, entry.fields)
 	assert.Nil(t, entry.fixedField)
+}
+
+func Test_newEntry_Cmp(t *testing.T) {
+	b := &bytes.Buffer{}
+	l, err := NewLogger(
+		WithCustomWriter(b),
+		WithGlobalFields(Fields{"foo": "bar"}),
+	)
+	assert.Nil(t, err)
+
+	entry := newEntry(l)
+	// l.releaseEntry(entry)
+	entry2 := l.newEntry()
+
+	assert.Equal(t, entry.ctxParser, entry2.ctxParser)
+	assert.Equal(t, entry.ctx, entry2.ctx)
+	assert.Equal(t, entry.lv, entry2.lv)
+	assert.Equal(t, entry.fields, entry2.fields)
+	assert.Equal(t, entry.callerReporter, entry2.callerReporter)
+	assert.Equal(t, entry.formatter, entry2.formatter)
+	assert.Equal(t, entry.logger, entry2.logger)
 }
 
 func Test_entry_WithFields(t *testing.T) {
@@ -65,4 +87,39 @@ func Test_entry_Without_Caller(t *testing.T) {
 	entry2.Info("with caller")
 	assert.Contains(t, b.String(), "file")
 	assert.Contains(t, b.String(), "fn")
+}
+
+func Test_entry_WithContextButNotSetParser(t *testing.T) {
+	// b := &bytes.Buffer{}
+	l, err := NewLogger(
+	// WithCustomWriter(b),
+	)
+	assert.Nil(t, err)
+
+	entry := l.newEntry()
+	entry2 := entry.WithContext(context.TODO())
+	entry2.Info("output")
+
+	assert.Contains(t, entry2.fields, _defaultFieldName)
+	assert.Equal(t, "non action", entry2.fields[_defaultFieldName])
+}
+
+func Test_entry_WithContextAndSetParser(t *testing.T) {
+	var customParser = func(ctx context.Context) interface{} {
+		return "custom"
+	}
+
+	// b := &bytes.Buffer{}
+	l, err := NewLogger(
+		// WithCustomWriter(b),
+		WithContextParser(NewContextParserFunc(customParser, "ctxField")),
+	)
+	assert.Nil(t, err)
+
+	entry := l.newEntry()
+	entry2 := entry.WithContext(context.TODO())
+	entry2.Info("output")
+
+	assert.Contains(t, entry2.fields, "ctxField")
+	assert.Equal(t, "custom", entry2.fields["ctxField"])
 }
