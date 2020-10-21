@@ -32,11 +32,14 @@ func Test_newEntry_Cmp(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
+	// create an entry and release one
+	l.WithFields(Fields{"malloc": "release"}).Info("haha")
+
 	entry := newEntry(l)
-	// l.releaseEntry(entry)
 	entry2 := l.newEntry()
 
-	assert.Equal(t, entry.ctxParser, entry2.ctxParser)
+	assert.Equal(t, entry.ctxParser.(funcContextParser).fieldName,
+		entry2.ctxParser.(funcContextParser).fieldName) // function couldn't be compared.
 	assert.Equal(t, entry.ctx, entry2.ctx)
 	assert.Equal(t, entry.lv, entry2.lv)
 	assert.Equal(t, entry.fields, entry2.fields)
@@ -61,6 +64,7 @@ func Test_entry_WithFields(t *testing.T) {
 	})
 
 	assert.Contains(t, entry2.fields, "foo2")
+	assert.NotContains(t, entry2.fields, _defaultFieldName)
 	assert.Contains(t, entry2.fields, "foo")
 	assert.Equal(t, "bar updated", entry2.fields["foo"])
 }
@@ -87,6 +91,34 @@ func Test_entry_Without_Caller(t *testing.T) {
 	entry2.Info("with caller")
 	assert.Contains(t, b.String(), "file")
 	assert.Contains(t, b.String(), "fn")
+}
+
+func Test_entry_WithContextAndWithFields(t *testing.T) {
+	b := &bytes.Buffer{}
+	l, err := NewLogger(
+		WithCustomWriter(b),
+	)
+	assert.Nil(t, err)
+
+	//  withContext then withFields
+	entry2 := l.newEntry().WithContext(context.TODO()).WithFields(Fields{
+		"field1": "field1",
+	})
+	entry2.Info("output")
+
+	assert.Contains(t, entry2.fields, _defaultFieldName)
+	assert.Contains(t, entry2.fields, "field1")
+	assert.Equal(t, "non action", entry2.fields[_defaultFieldName])
+
+	// withFields then withContext
+	entry3 := l.newEntry().WithFields(Fields{
+		"field2": "field2",
+	}).WithContext(context.TODO())
+	entry3.Info("output")
+
+	assert.Contains(t, entry3.fields, _defaultFieldName)
+	assert.Contains(t, entry3.fields, "field2")
+
 }
 
 func Test_entry_WithContextButNotSetParser(t *testing.T) {
