@@ -7,6 +7,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -131,6 +132,9 @@ func (l *Logger) newEntry() *entry {
 		e.fields = make(Fields, 6)
 		copyFields(e.fields, l.opt.globalFields)
 		e.formatter = &TextFormatter{isTerminal: l.opt.terminal()}
+		e.ctxParser = l.opt.ctxParser
+		// FIXED(@yeqown): reuse entry incorrectly.
+		return e
 	}
 
 	return newEntry(l)
@@ -161,6 +165,13 @@ func (l *Logger) WithFields(fields Fields) *entry {
 	defer l.releaseEntry(e)
 
 	return e.WithFields(fields)
+}
+
+func (l *Logger) WithContext(ctx context.Context) *entry {
+	e := l.newEntry()
+	defer l.releaseEntry(e)
+
+	return e.WithContext(ctx)
 }
 
 // open a file to log

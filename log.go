@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"os"
 )
 
@@ -122,6 +123,11 @@ func WithField(key string, value interface{}) *entry {
 // WithFields .
 func WithFields(fields Fields) *entry {
 	return builtin.WithFields(fields)
+}
+
+// WithContext .
+func WithContext(ctx context.Context) *entry {
+	return builtin.WithContext(ctx)
 }
 
 // SetLogLevel .
