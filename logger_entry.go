@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,9 @@ type entry struct {
 
 	fixedField *fixedField // fixed fields to log
 	fields     Fields      // fields
+
+	ctx       context.Context
+	ctxParser ContextParser
 }
 
 func newEntry(l *Logger) *entry {
@@ -30,6 +34,7 @@ func newEntry(l *Logger) *entry {
 		callerReporter: l.opt.callerReporter,
 		fixedField:     nil,
 		fields:         make(Fields, 4),
+		ctxParser:      l.opt.ctxParser,
 	}
 
 	if l.opt.globalFields != nil && len(l.opt.globalFields) != 0 {
@@ -51,6 +56,21 @@ func (e *entry) WithFields(fields Fields) *entry {
 		formatter: e.formatter,
 		lv:        e.lv,
 		fields:    dst,
+		ctx:       e.ctx,
+		ctxParser: e.ctxParser,
+	}
+}
+
+// WithContext would overwrite the previous ctx which exists in `e`.
+func (e *entry) WithContext(ctx context.Context) *entry {
+	return &entry{
+		logger:    e.logger,
+		out:       e.out,
+		formatter: e.formatter,
+		lv:        e.lv,
+		fields:    e.fields, // TODO: ANY PROBLEM HERE ?
+		ctx:       ctx,
+		ctxParser: e.ctxParser,
 	}
 }
 
@@ -61,6 +81,8 @@ func (e *entry) reset() {
 	e.logger = nil
 	e.formatter = nil
 	e.fixedField = nil
+	e.ctx = nil
+	e.ctxParser = nil
 }
 
 func (e *entry) Fatal(args ...interface{}) {
@@ -138,6 +160,12 @@ func (e *entry) output(lv Level, msg string) {
 	// setting current lv
 	e.lv = lv
 	e.fields["msg"] = msg
+
+	// parse context
+	if e.ctx != nil && e.ctxParser != nil {
+		_ctxValue := e.ctxParser.Parse(e.ctx)
+		e.fields[e.ctxParser.FieldName()] = _ctxValue
+	}
 
 	// format message
 	data, err := e.formatter.Format(e)

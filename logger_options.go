@@ -24,7 +24,8 @@ type options struct {
 	isTerminal bool // to mark the output is file or stdout
 	stdout     bool // output to stdout, only affect when file log mode
 
-	callerReporter bool // log caller or not
+	callerReporter bool          // log caller or not
+	ctxParser      ContextParser // ContextParser for parse Context
 }
 
 func (o *options) level() Level {
@@ -63,6 +64,8 @@ func defaultLoggerOption(lo *options) error {
 	lo.stdout = true
 	lo.isTerminal = true
 	lo.globalFields = nil
+	// using `nonParser` as default to help user to define their own parser
+	lo.ctxParser = DefaultContextParserFunc(nonParser)
 
 	return nil
 }
@@ -154,6 +157,15 @@ func WithFileLog(file string, autoRotate bool) LoggerOption {
 			}()
 		}
 
+		return nil
+	}
+}
+
+// WithContextParser set an custom ContextParser for parsing context.
+// maybe you want to auto log opentracing traceId, this could help you.
+func WithContextParser(parser ContextParser) LoggerOption {
+	return func(lo *options) error {
+		lo.ctxParser = parser
 		return nil
 	}
 }
