@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -51,26 +52,28 @@ func (e *entry) WithFields(fields Fields) *entry {
 	copyFields(dst, fields)
 
 	return &entry{
-		logger:    e.logger,
-		out:       e.out,
-		formatter: e.formatter,
-		lv:        e.lv,
-		fields:    dst,
-		ctx:       e.ctx,
-		ctxParser: e.ctxParser,
+		logger:         e.logger,
+		out:            e.out,
+		formatter:      e.formatter,
+		lv:             e.lv,
+		fields:         dst,
+		ctx:            e.ctx,
+		ctxParser:      e.ctxParser,
+		callerReporter: e.callerReporter,
 	}
 }
 
 // WithContext would overwrite the previous ctx which exists in `e`.
 func (e *entry) WithContext(ctx context.Context) *entry {
 	return &entry{
-		logger:    e.logger,
-		out:       e.out,
-		formatter: e.formatter,
-		lv:        e.lv,
-		fields:    e.fields, // TODO: ANY PROBLEM HERE ?
-		ctx:       ctx,
-		ctxParser: e.ctxParser,
+		logger:         e.logger,
+		out:            e.out,
+		formatter:      e.formatter,
+		lv:             e.lv,
+		fields:         e.fields, // TODO: ANY PROBLEM HERE ?
+		ctx:            ctx,
+		ctxParser:      e.ctxParser,
+		callerReporter: e.callerReporter,
 	}
 }
 
@@ -83,6 +86,7 @@ func (e *entry) reset() {
 	e.fixedField = nil
 	e.ctx = nil
 	e.ctxParser = nil
+	e.callerReporter = false
 }
 
 func (e *entry) Fatal(args ...interface{}) {
@@ -170,11 +174,14 @@ func (e *entry) output(lv Level, msg string) {
 	// format message
 	data, err := e.formatter.Format(e)
 	if err != nil {
-		panic(err) // FIXME: throw error in a way not panic
+		// FIXED: throw error in a way not panic
+		// panic(err)
+		log.Printf("WARN: could not format message, err=%v", err)
 	}
 
 	// write into writer
 	if _, err = e.out.Write(data); err != nil {
-		panic(err)
+		// panic(err)
+		log.Printf("WARN: could not write log data, err=%v", err)
 	}
 }
