@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -89,8 +90,8 @@ func Test_entry_Without_Caller(t *testing.T) {
 	entry2 := newEntry(l)
 	assert.Equal(t, true, entry2.callerReporter)
 	entry2.Info("with caller")
-	assert.Contains(t, b.String(), "file")
-	assert.Contains(t, b.String(), "fn")
+	assert.Contains(t, b.String(), _FileKey)
+	assert.Contains(t, b.String(), _FuncName)
 }
 
 func Test_entry_WithContextAndWithFields(t *testing.T) {
@@ -154,4 +155,20 @@ func Test_entry_WithContextAndSetParser(t *testing.T) {
 
 	assert.Contains(t, entry2.fields, "ctxField")
 	assert.Equal(t, "custom", entry2.fields["ctxField"])
+}
+
+func Test_entry_WithTimeFormat(t *testing.T) {
+	// b := &bytes.Buffer{}
+	l, err := NewLogger(
+		// WithCustomWriter(b),
+		WithTimeFormat(true, time.RFC850),
+	)
+	assert.Nil(t, err)
+
+	entry := l.newEntry()
+	assert.Equal(t, true, entry.formatTime)
+	assert.Equal(t, time.RFC850, entry.formatTimeLayout)
+
+	entry.Info("with time format and layout")
+
 }

@@ -129,6 +129,8 @@ func (l *Logger) newEntry() *entry {
 		e.lv = l.opt.level()
 		e.out = l.opt.writer()
 		e.callerReporter = l.opt.callerReporter
+		e.formatTime = l.opt.formatTime
+		e.formatTimeLayout = l.opt.formatTimeLayout
 		e.fields = make(Fields, 6)
 		copyFields(e.fields, l.opt.globalFields)
 		e.formatter = &TextFormatter{isTerminal: l.opt.terminal()}
@@ -151,6 +153,15 @@ func (l *Logger) SetLogLevel(level Level) {
 
 func (l *Logger) SetCallerReporter(b bool) {
 	l.opt.callerReporter = b
+}
+
+func (l *Logger) SetTimeFormat(b bool, layout string) {
+	l.opt.formatTime = b
+	// DONE(@yeqown) set layout as time format, only allow formatTime opened.
+	l.opt.formatTimeLayout = layout
+	if l.opt.formatTimeLayout == "" {
+		l.opt.formatTimeLayout = time.RFC3339
+	}
 }
 
 func (l *Logger) WithField(key string, value interface{}) *entry {

@@ -21,11 +21,13 @@ type options struct {
 	globalFields Fields    // global fields
 
 	// flags
-	isTerminal bool // to mark the output is file or stdout
-	stdout     bool // output to stdout, only affect when file log mode
+	isTerminal       bool   // to mark the output is file or stdout
+	stdout           bool   // output to stdout, only affect when file log mode
+	callerReporter   bool   // log caller or not.
+	formatTime       bool   // format time or nor.
+	formatTimeLayout string // format time layout.
 
-	callerReporter bool          // log caller or not
-	ctxParser      ContextParser // ContextParser for parse Context
+	ctxParser ContextParser // ContextParser for parse Context
 }
 
 func (o *options) level() Level {
@@ -111,6 +113,17 @@ func WithReportCaller(b bool) LoggerOption {
 	return func(lo *options) error {
 		lo.callerReporter = b
 
+		return nil
+	}
+}
+
+func WithTimeFormat(b bool, layout string) LoggerOption {
+	return func(lo *options) error {
+		lo.formatTime = b
+		lo.formatTimeLayout = layout
+		if lo.formatTimeLayout == "" {
+			lo.formatTimeLayout = time.RFC3339
+		}
 		return nil
 	}
 }

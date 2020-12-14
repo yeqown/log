@@ -13,18 +13,18 @@ type (
 func (lv Level) String() string {
 	switch lv {
 	case LevelFatal:
-		return "Fatal"
+		return "FTL"
 	case LevelError:
-		return "Error"
+		return "ERR"
 	case LevelWarning:
-		return "Warning"
+		return "WRN"
 	case LevelInfo:
-		return "Info"
+		return "INF"
 	case LevelDebug:
-		return "Debug"
+		return "DBG"
 	}
 
-	return "UNKNOWN"
+	return "UNK"
 }
 
 func (lv Level) Color() int {
@@ -137,4 +137,8 @@ func SetLogLevel(level Level) {
 
 func SetCallerReporter(b bool) {
 	builtin.SetCallerReporter(b)
+}
+
+func SetTimeFormat(b bool, layout string) {
+	builtin.SetTimeFormat(b, layout)
 }
