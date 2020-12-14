@@ -11,11 +11,13 @@ import (
 )
 
 type entry struct {
-	logger         *Logger   // logger pointer
-	out            io.Writer // write to record
-	formatter      Formatter // format entry to log
-	lv             Level     // the lowest lv which could be log
-	callerReporter bool      // log caller
+	logger           *Logger   // logger pointer
+	out              io.Writer // write to record
+	formatter        Formatter // format entry to log
+	lv               Level     // the lowest lv which could be log
+	callerReporter   bool      // log caller
+	formatTime       bool      // should time be formatted and printed
+	formatTimeLayout string    // the layout of time be formatted.
 
 	fixedField *fixedField // fixed fields to log
 	fields     Fields      // fields
@@ -32,10 +34,12 @@ func newEntry(l *Logger) *entry {
 		formatter: &TextFormatter{
 			isTerminal: l.opt.isTerminal,
 		},
-		callerReporter: l.opt.callerReporter,
-		fixedField:     nil,
-		fields:         make(Fields, 4),
-		ctxParser:      l.opt.ctxParser,
+		callerReporter:   l.opt.callerReporter,
+		formatTime:       l.opt.formatTime,
+		formatTimeLayout: l.opt.formatTimeLayout,
+		fixedField:       nil,
+		fields:           make(Fields, 4),
+		ctxParser:        l.opt.ctxParser,
 	}
 
 	if l.opt.globalFields != nil && len(l.opt.globalFields) != 0 {
@@ -52,28 +56,32 @@ func (e *entry) WithFields(fields Fields) *entry {
 	copyFields(dst, fields)
 
 	return &entry{
-		logger:         e.logger,
-		out:            e.out,
-		formatter:      e.formatter,
-		lv:             e.lv,
-		fields:         dst,
-		ctx:            e.ctx,
-		ctxParser:      e.ctxParser,
-		callerReporter: e.callerReporter,
+		logger:           e.logger,
+		out:              e.out,
+		formatter:        e.formatter,
+		lv:               e.lv,
+		fields:           dst,
+		ctx:              e.ctx,
+		ctxParser:        e.ctxParser,
+		callerReporter:   e.callerReporter,
+		formatTime:       e.formatTime,
+		formatTimeLayout: e.formatTimeLayout,
 	}
 }
 
 // WithContext would overwrite the previous ctx which exists in `e`.
 func (e *entry) WithContext(ctx context.Context) *entry {
 	return &entry{
-		logger:         e.logger,
-		out:            e.out,
-		formatter:      e.formatter,
-		lv:             e.lv,
-		fields:         e.fields, // TODO: ANY PROBLEM HERE ?
-		ctx:            ctx,
-		ctxParser:      e.ctxParser,
-		callerReporter: e.callerReporter,
+		logger:           e.logger,
+		out:              e.out,
+		formatter:        e.formatter,
+		lv:               e.lv,
+		fields:           e.fields, // TODO: ANY PROBLEM HERE ?
+		ctx:              ctx,
+		ctxParser:        e.ctxParser,
+		callerReporter:   e.callerReporter,
+		formatTime:       e.formatTime,
+		formatTimeLayout: e.formatTimeLayout,
 	}
 }
 
@@ -87,6 +95,8 @@ func (e *entry) reset() {
 	e.ctx = nil
 	e.ctxParser = nil
 	e.callerReporter = false
+	e.formatTime = false
+	// e.formatTimeLayout = time.RFC3339 no need to reset
 }
 
 func (e *entry) Fatal(args ...interface{}) {
@@ -139,10 +149,13 @@ func (e *entry) output(lv Level, msg string) {
 	now := time.Now()
 
 	e.fixedField = &fixedField{
+		Timestamp: now.Unix(),
 		//File:          file + ":" + strconv.Itoa(line),
 		//Fn:            fn,
-		Timestamp:     now.Unix(),
-		FormattedTime: now.Format(time.RFC3339),
+		// FormattedTime: now.Format(_TimeFormatLayout),
+	}
+	if e.formatTime {
+		e.fixedField.FormattedTime = now.Format(e.formatTimeLayout)
 	}
 
 	if e.callerReporter {

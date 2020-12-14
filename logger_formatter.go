@@ -5,6 +5,19 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"time"
+)
+
+const (
+	_FileKey       = "_filepath"
+	_FuncName      = "_func"
+	_TimestampKey  = "_ts"
+	_FormatTimeKey = "_fmt_time"
+)
+
+var (
+	// TODO(@yeqown) make this as a feature API.
+	_TimeFormatLayout = time.RFC3339
 )
 
 // Formatter to format entry fields and other field
@@ -27,7 +40,7 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 	f.printColoredLevel(b, e)
 
 	// write fixed fields
-	f.printFixedFields(b, e.fixedField, e.callerReporter)
+	f.printFixedFields(b, e.fixedField, e.callerReporter, e.formatTime)
 
 	// write fields
 	keys := make([]string, 0, len(e.fields))
@@ -46,21 +59,27 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 
 // colored this output
 func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
-	val := "[" + e.lv.String() + "]"
+	val := e.lv.String()
+	// 	val := "[" + e.lv.String() + "]"
 	if f.isTerminal {
-		val = "\033[" + strconv.Itoa(e.lv.Color()) + "m[" + e.lv.String() + "]\033[0m"
+		val = "\033[" + strconv.Itoa(e.lv.Color()) + "m" + val + "\033[0m"
 	}
 	b.WriteString(val)
 }
 
 // printFixedFields
-func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, printCaller bool) {
+func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, printCaller, formatTime bool) {
 	if printCaller {
-		appendKeyValue(b, "file", fixed.File)
-		appendKeyValue(b, "fn", fixed.Fn)
+		appendKeyValue(b, _FileKey, fixed.File)
+		appendKeyValue(b, _FuncName, fixed.Fn)
 	}
-	appendKeyValue(b, "timestamp", fixed.Timestamp)
-	appendKeyValue(b, "formatted_time", fixed.FormattedTime)
+
+	// TODO(@yeqown): maybe need an option to make these two option coexist
+	if formatTime {
+		appendKeyValue(b, _FormatTimeKey, fixed.FormattedTime)
+	} else {
+		appendKeyValue(b, _TimestampKey, fixed.Timestamp)
+	}
 }
 
 // printFields

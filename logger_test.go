@@ -65,14 +65,14 @@ func Test_Logger_SetLevel(t *testing.T) {
 	// set level
 	logger.SetLogLevel(LevelWarning)
 
-	logger.Debug("Debug")
-	assert.NotContains(t, b.String(), "Debug")
-	logger.Info("Info")
-	assert.NotContains(t, b.String(), "Info")
-	logger.Warn("Warn")
-	assert.Contains(t, b.String(), "Warn")
-	logger.Error("Error")
-	assert.Contains(t, b.String(), "Error")
+	logger.Debug("debug")
+	assert.NotContains(t, b.String(), "DBG")
+	logger.Info("info")
+	assert.NotContains(t, b.String(), "INF")
+	logger.Warn("warn")
+	assert.Contains(t, b.String(), "WRN")
+	logger.Error("error")
+	assert.Contains(t, b.String(), "ERR")
 }
 
 func Test_Logger_WithLevel(t *testing.T) {
@@ -83,14 +83,27 @@ func Test_Logger_WithLevel(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	logger.Debug("Debug")
-	assert.NotContains(t, b.String(), "Debug")
-	logger.Info("Info")
-	assert.NotContains(t, b.String(), "Info")
-	logger.Warn("Warn")
-	assert.Contains(t, b.String(), "Warn")
-	logger.Error("Error")
-	assert.Contains(t, b.String(), "Error")
+	logger.Debug("debug")
+	assert.NotContains(t, b.String(), "DBG")
+	logger.Info("info")
+	assert.NotContains(t, b.String(), "INF")
+	logger.Warn("warn")
+	assert.Contains(t, b.String(), "WRN")
+	logger.Error("error")
+	assert.Contains(t, b.String(), "ERR")
+}
+
+func Test_Logger_SetTimeFormat(t *testing.T) {
+	b := &bytes.Buffer{}
+	logger, err := NewLogger(
+		WithCustomWriter(b),
+	)
+	assert.Nil(t, err)
+	logger.SetTimeFormat(true, "")
+
+	logger.Info("info test time format")
+	assert.Contains(t, b.String(), _FormatTimeKey)
+	assert.NotContains(t, b.String(), _TimestampKey)
 }
 
 func Test_FileSplit(t *testing.T) {

@@ -12,6 +12,7 @@ type embed struct {
 func main() {
 	// using builtin logger
 	log.SetCallerReporter(true)
+	log.SetTimeFormat(true, "")
 	log.Debug("this is a Debug log")
 	log.Info("this is a Info log")
 	log.Warn("this is a Warn log")
@@ -29,14 +30,15 @@ func main() {
 		}).Error("test error")
 
 	// using new logger
-	newLoggerOuput()
+	newLoggerOuputWithoutReporter()
 }
 
-func newLoggerOuput() {
+func newLoggerOuputWithoutReporter() {
 	logger, _ := log.NewLogger(
 		log.WithLevel(log.LevelInfo),
 		log.WithGlobalFields(log.Fields{"global_key": "global_value"}),
-		log.WithReportCaller(true),
+		// log.WithTimeFormat(true, "custom_layout"),
+		// log.WithReportCaller(true),
 	)
 
 	logger.Debug("this is a Debug log") // this will not output
