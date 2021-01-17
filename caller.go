@@ -19,7 +19,7 @@ var (
 
 const maximumCallerDepth = 25
 
-// TODO(@yeqown) measure this value
+// DONE(@yeqown) measure this value
 const knownLogFrames = 3
 
 // getCaller retrieves the name of the first non-log calling function

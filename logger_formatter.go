@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
-	"time"
 )
 
 const (
@@ -13,11 +12,9 @@ const (
 	_FuncName      = "_func"
 	_TimestampKey  = "_ts"
 	_FormatTimeKey = "_fmt_time"
-)
 
-var (
-	// TODO(@yeqown) make this as a feature API.
-	_TimeFormatLayout = time.RFC3339
+	// _interfaceFormat the instruction to format interface value.
+	_interfaceFormat string = "%+v"
 )
 
 // Formatter to format entry fields and other field
@@ -28,8 +25,14 @@ type Formatter interface {
 var _ Formatter = &TextFormatter{}
 
 type TextFormatter struct {
-	// Whether the Logger's out is to a terminal
+	// isTerminal indicates whether the Logger's out is to a terminal.
 	isTerminal bool
+}
+
+func newTextFormatter(isTerminal bool) Formatter {
+	return &TextFormatter{
+		isTerminal: isTerminal,
+	}
 }
 
 // Format entry into log
@@ -57,7 +60,7 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// colored this output
+// printColoredLevel colored this output
 func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
 	val := e.lv.String()
 	// 	val := "[" + e.lv.String() + "]"
@@ -101,7 +104,7 @@ func appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
 func appendValue(b *bytes.Buffer, value interface{}) {
 	stringVal, ok := value.(string)
 	if !ok {
-		stringVal = fmt.Sprint(value)
+		stringVal = fmt.Sprintf(_interfaceFormat, value)
 	}
 
 	b.WriteString(fmt.Sprintf("%q", stringVal))
