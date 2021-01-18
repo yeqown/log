@@ -109,6 +109,7 @@ func WithCustomWriter(w io.Writer) LoggerOption {
 	}
 }
 
+// WithReportCaller b is a switch to open print caller or not.
 func WithReportCaller(b bool) LoggerOption {
 	return func(lo *options) error {
 		lo.callerReporter = b
@@ -117,6 +118,7 @@ func WithReportCaller(b bool) LoggerOption {
 	}
 }
 
+// WithTimeFormat to output time as the layout you want.
 func WithTimeFormat(b bool, layout string) LoggerOption {
 	return func(lo *options) error {
 		lo.formatTime = b

@@ -30,15 +30,16 @@ func newEntry(l *Logger) *entry {
 	e := entry{
 		logger: l,
 		out:    l.opt.writer(),
-		lv:     l.opt.lv,
 		formatter: &TextFormatter{
 			isTerminal: l.opt.isTerminal,
 		},
+		lv:               l.opt.lv,
 		callerReporter:   l.opt.callerReporter,
 		formatTime:       l.opt.formatTime,
 		formatTimeLayout: l.opt.formatTimeLayout,
 		fixedField:       nil,
 		fields:           make(Fields, 4),
+		ctx:              nil,
 		ctxParser:        l.opt.ctxParser,
 	}
 
@@ -49,40 +50,41 @@ func newEntry(l *Logger) *entry {
 	return &e
 }
 
-func (e *entry) WithFields(fields Fields) *entry {
-	dst := make(Fields, len(fields)+len(e.fields))
+func (e *entry) copy() *entry {
+	dst := make(Fields, len(e.fields))
 	// FIXED: copy entry's fields at first, then copy newer fields
 	copyFields(dst, e.fields)
-	copyFields(dst, fields)
 
-	return &entry{
+	newer := &entry{
 		logger:           e.logger,
 		out:              e.out,
 		formatter:        e.formatter,
 		lv:               e.lv,
-		fields:           dst,
-		ctx:              e.ctx,
-		ctxParser:        e.ctxParser,
 		callerReporter:   e.callerReporter,
 		formatTime:       e.formatTime,
 		formatTimeLayout: e.formatTimeLayout,
+		fixedField:       nil,
+		fields:           dst,
+		ctx:              e.ctx,
+		ctxParser:        e.ctxParser,
 	}
+
+	return newer
+}
+
+func (e *entry) WithFields(fields Fields) *entry {
+	newer := e.copy()
+	copyFields(newer.fields, fields)
+
+	return newer
 }
 
 // WithContext would overwrite the previous ctx which exists in `e`.
 func (e *entry) WithContext(ctx context.Context) *entry {
-	return &entry{
-		logger:           e.logger,
-		out:              e.out,
-		formatter:        e.formatter,
-		lv:               e.lv,
-		fields:           e.fields, // TODO: ANY PROBLEM HERE ?
-		ctx:              ctx,
-		ctxParser:        e.ctxParser,
-		callerReporter:   e.callerReporter,
-		formatTime:       e.formatTime,
-		formatTimeLayout: e.formatTimeLayout,
-	}
+	newer := e.copy()
+	newer.ctx = ctx
+
+	return newer
 }
 
 func (e *entry) reset() {
