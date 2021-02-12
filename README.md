@@ -6,11 +6,11 @@ a lite golang log library, easy to get start and no dependency.
 
 ### Features
 
-[x] `consolt` and `filelog` support 
+- [x] `consolt` and `filelog` support 
 
-[x] `WithFields` support
-
-[x] lite and easy to use
+- [x] `WithFields` support
+  
+- [x] lite and easy to use
 
 ### Install 
 
@@ -87,10 +87,10 @@ Here are some shots of using example.
 
 ##### 1. stdout shots
 
-![shot1](./assets/shot1.png)
+<img src="./assets/shot1.png" width="100%"/>
 
 ##### 2. file shots
 
 > output to stdout and file both.
 
-![shot2](./assets/shot2.png)
+<img src="./assets/shot2.png" width="100%"/>
