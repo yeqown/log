@@ -133,7 +133,7 @@ func (l *Logger) newEntry() *entry {
 		e.formatTimeLayout = l.opt.formatTimeLayout
 		e.fields = make(Fields, 6)
 		copyFields(e.fields, l.opt.globalFields)
-		e.formatter = &TextFormatter{isTerminal: l.opt.terminal()}
+		e.formatter = newTextFormatter(l.opt.isTerminal())
 		e.ctxParser = l.opt.ctxParser
 		// FIXED(@yeqown): reuse entry incorrectly.
 		return e

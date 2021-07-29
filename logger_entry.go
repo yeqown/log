@@ -28,11 +28,9 @@ type entry struct {
 
 func newEntry(l *Logger) *entry {
 	e := entry{
-		logger: l,
-		out:    l.opt.writer(),
-		formatter: &TextFormatter{
-			isTerminal: l.opt.isTerminal,
-		},
+		logger:           l,
+		out:              l.opt.writer(),
+		formatter:        newTextFormatter(l.opt.isTerminal()),
 		lv:               l.opt.lv,
 		callerReporter:   l.opt.callerReporter,
 		formatTime:       l.opt.formatTime,

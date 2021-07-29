@@ -17,12 +17,9 @@ type LoggerOption func(lo *options) error
 type options struct {
 	// variables
 	w            io.Writer // writer
-	lv           Level     // only log.LV is lte than lv, then it would be written into Writer
+	lv           Level     // only log.lv is lte than lv, then it would be written into Writer
 	globalFields Fields    // global fields
 
-	// flags
-	isTerminal       bool   // to mark the output is file or stdout
-	stdout           bool   // output to stdout, only affect when file log mode
 	callerReporter   bool   // log caller or not.
 	formatTime       bool   // format time or nor.
 	formatTimeLayout string // format time layout.
@@ -38,21 +35,38 @@ func (o *options) level() Level {
 	return o.lv
 }
 
-func (o *options) terminal() bool {
+// isTerminal indicates the w (io.Writer) is a byte output device.
+func (o *options) isTerminal() bool {
 	if o == nil {
 		return true
 	}
 
-	return o.isTerminal
+	return isTerminal(o.w)
+}
+
+func isTerminal(w io.Writer) bool {
+	if w == nil {
+		return false
+	}
+
+	fd, ok := w.(*os.File)
+	if !ok {
+		return false
+	}
+
+	fi, err := fd.Stat()
+	if err != nil {
+		return false
+	}
+
+	// os.Stdout is named pipe to /dev/fd/1 (char device)
+	// os.Stderr is named pipe to /dev/fd/2 (char device)
+	return fi.Mode()&os.ModeNamedPipe == os.ModeNamedPipe || fi.Mode()&os.ModeCharDevice == os.ModeCharDevice
 }
 
 func (o *options) writer() io.Writer {
 	if o == nil {
 		return os.Stdout
-	}
-
-	if !o.isTerminal && o.stdout {
-		return io.MultiWriter(os.Stdout, o.w)
 	}
 
 	return o.w
@@ -63,8 +77,8 @@ func (o *options) writer() io.Writer {
 func defaultLoggerOption(lo *options) error {
 	lo.w = os.Stdout
 	lo.lv = LevelDebug
-	lo.stdout = true
-	lo.isTerminal = true
+	// lo.stdout = true
+	//lo.isTerminal = true
 	lo.globalFields = nil
 	// using `nonParser` as default to help user to define their own parser
 	lo.ctxParser = DefaultContextParserFunc(nonParser)
@@ -80,10 +94,14 @@ func WithLevel(lv Level) LoggerOption {
 	}
 }
 
-// WithStdout output to os.Stdout this only affect when file log is opening
+// WithStdout output to os.Stdout also.
 func WithStdout(v bool) LoggerOption {
 	return func(lo *options) error {
-		lo.stdout = v
+		if lo.w != nil && lo.w != os.Stdout {
+			// If has set a witer, and the writer isn't os.Stdout, use io.MultiWriter
+			// to merge old writer and os.Stdout.
+			lo.w = io.MultiWriter(lo.w, os.Stdout)
+		}
 		return nil
 	}
 }
@@ -101,8 +119,6 @@ func WithCustomWriter(w io.Writer) LoggerOption {
 	return func(lo *options) error {
 		if w != nil {
 			lo.w = w
-			lo.isTerminal = false
-			lo.stdout = false
 		}
 
 		return nil
@@ -144,7 +160,6 @@ func WithFileLog(file string, autoRotate bool) LoggerOption {
 		if lo.w, err = open(abs); err != nil {
 			return errors.Wrapf(err, "WithFileLog.open abs: %s", abs)
 		}
-		lo.isTerminal = false
 
 		// support autoRotate
 		if autoRotate {
