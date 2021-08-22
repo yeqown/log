@@ -11,13 +11,13 @@ import (
 )
 
 type entry struct {
-	logger           *Logger   // logger pointer
-	out              io.Writer // write to record
-	formatter        Formatter // format entry to log
-	lv               Level     // the lowest lv which could be log
-	callerReporter   bool      // log caller
-	formatTime       bool      // should time be formatted and printed
-	formatTimeLayout string    // the layout of time be formatted.
+	logger         *Logger   // logger pointer
+	out            io.Writer // write to record
+	formatter      Formatter // format entry to log
+	lv             Level     // the lowest lv which could be logged.
+	callerReporter bool      // log caller
+	//formatTime       bool      // should time be formatted and printed
+	//formatTimeLayout string    // the layout of time be formatted.
 
 	fixedField *fixedField // fixed fields to log
 	fields     Fields      // fields
@@ -27,18 +27,23 @@ type entry struct {
 }
 
 func newEntry(l *Logger) *entry {
+	formatter := newTextFormatter(
+		l.opt.isTerminal(),
+		l.opt.sortField,
+		l.opt.formatTime,
+		l.opt.formatTimeLayout,
+	)
+
 	e := entry{
-		logger:           l,
-		out:              l.opt.writer(),
-		formatter:        newTextFormatter(l.opt.isTerminal()),
-		lv:               l.opt.lv,
-		callerReporter:   l.opt.callerReporter,
-		formatTime:       l.opt.formatTime,
-		formatTimeLayout: l.opt.formatTimeLayout,
-		fixedField:       nil,
-		fields:           make(Fields, 4),
-		ctx:              nil,
-		ctxParser:        l.opt.ctxParser,
+		logger:         l,
+		out:            l.opt.writer(),
+		formatter:      formatter,
+		lv:             l.opt.lv,
+		callerReporter: l.opt.callerReporter,
+		fixedField:     nil,
+		fields:         make(Fields, 4),
+		ctx:            nil,
+		ctxParser:      l.opt.ctxParser,
 	}
 
 	if l.opt.globalFields != nil && len(l.opt.globalFields) != 0 {
@@ -54,17 +59,15 @@ func (e *entry) copy() *entry {
 	copyFields(dst, e.fields)
 
 	newer := &entry{
-		logger:           e.logger,
-		out:              e.out,
-		formatter:        e.formatter,
-		lv:               e.lv,
-		callerReporter:   e.callerReporter,
-		formatTime:       e.formatTime,
-		formatTimeLayout: e.formatTimeLayout,
-		fixedField:       nil,
-		fields:           dst,
-		ctx:              e.ctx,
-		ctxParser:        e.ctxParser,
+		logger:         e.logger,
+		out:            e.out,
+		formatter:      e.formatter,
+		lv:             e.lv,
+		callerReporter: e.callerReporter,
+		fixedField:     nil,
+		fields:         dst,
+		ctx:            e.ctx,
+		ctxParser:      e.ctxParser,
 	}
 
 	return newer
@@ -95,8 +98,6 @@ func (e *entry) reset() {
 	e.ctx = nil
 	e.ctxParser = nil
 	e.callerReporter = false
-	e.formatTime = false
-	// e.formatTimeLayout = time.RFC3339 no need to reset
 }
 
 func (e *entry) Fatal(args ...interface{}) {
@@ -152,10 +153,6 @@ func (e *entry) output(lv Level, msg string) {
 		Timestamp: now.Unix(),
 		//File:          file + ":" + strconv.Itoa(line),
 		//Fn:            fn,
-		// FormattedTime: now.Format(_TimeFormatLayout),
-	}
-	if e.formatTime {
-		e.fixedField.FormattedTime = now.Format(e.formatTimeLayout)
 	}
 
 	if e.callerReporter {

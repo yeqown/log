@@ -20,11 +20,15 @@ type options struct {
 	lv           Level     // only log.lv is lte than lv, then it would be written into Writer
 	globalFields Fields    // global fields
 
-	callerReporter   bool   // log caller or not.
-	formatTime       bool   // format time or nor.
-	formatTimeLayout string // format time layout.
+	callerReporter bool          // log caller or not.
+	ctxParser      ContextParser // ContextParser for parse Context
 
-	ctxParser ContextParser // ContextParser for parse Context
+	// formatTime format time or not.
+	formatTime bool
+	// formatTimeLayout format time layout.
+	formatTimeLayout string
+	// sortField print fields in order of fields' keys lexicographical order.
+	sortField bool
 }
 
 func (o *options) level() Level {
@@ -72,9 +76,9 @@ func (o *options) writer() io.Writer {
 	return o.w
 }
 
-// defaultLoggerOption sets os.Stdout as write, debug level,
+// withDefault sets os.Stdout as write, debug level,
 // terminal open and no global fields.
-func defaultLoggerOption(lo *options) error {
+func withDefault(lo *options) error {
 	lo.w = os.Stdout
 	lo.lv = LevelDebug
 	// lo.stdout = true
@@ -82,6 +86,9 @@ func defaultLoggerOption(lo *options) error {
 	lo.globalFields = nil
 	// using `nonParser` as default to help user to define their own parser
 	lo.ctxParser = DefaultContextParserFunc(nonParser)
+	lo.formatTime = false
+	lo.formatTimeLayout = ""
+	lo.sortField = false
 
 	return nil
 }
@@ -191,11 +198,19 @@ func WithFileLog(file string, autoRotate bool) LoggerOption {
 	}
 }
 
-// WithContextParser set an custom ContextParser for parsing context.
+// WithContextParser set a custom ContextParser for parsing context.
 // maybe you want to auto log opentracing traceId, this could help you.
 func WithContextParser(parser ContextParser) LoggerOption {
 	return func(lo *options) error {
 		lo.ctxParser = parser
+		return nil
+	}
+}
+
+// WithFieldsSort print fields in order of fields' keys lexicographical order.
+func WithFieldsSort(sortField bool) LoggerOption {
+	return func(lo *options) error {
+		lo.sortField = sortField
 		return nil
 	}
 }
