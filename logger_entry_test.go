@@ -91,7 +91,7 @@ func Test_entry_Without_Caller(t *testing.T) {
 	assert.Equal(t, true, entry2.callerReporter)
 	entry2.Info("with caller")
 	assert.Contains(t, b.String(), _FileKey)
-	assert.Contains(t, b.String(), _FuncName)
+	assert.Contains(t, b.String(), _FuncNameKey)
 }
 
 func Test_entry_WithContextAndWithFields(t *testing.T) {

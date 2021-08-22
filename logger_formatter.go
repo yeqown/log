@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
-	"strconv"
 	"time"
 )
 
 const (
-	_FileKey       = "_filepath"
-	_FuncName      = "_func"
-	_TimestampKey  = "_ts"
-	_FormatTimeKey = "_fmt_time"
+	_FileKey       = "_file"
+	_FuncNameKey   = "_func"
+	_TimestampKey  = "_timestamp"
+	_FormatTimeKey = "_time"
 
 	// _interfaceFormat the instruction to format interface value.
 	_interfaceFormat string = "%+v"
@@ -53,16 +52,12 @@ func newTextFormatter(
 // Format entry into log
 func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 	b := bytes.NewBuffer(nil)
-
 	// write level and colors
 	f.printColoredLevel(b, e)
-
 	// write fixed fields
 	f.printFixedFields(b, e.fixedField, e.callerReporter)
-
 	// write fields
 	f.printFields(b, e.fields)
-
 	// write a newline flag
 	b.WriteString("\n")
 
@@ -74,8 +69,11 @@ func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
 	s := e.lv.String()
 	// 	s := "[" + e.lv.String() + "]"
 	if f.isTerminal {
-		s = "\033[" + strconv.Itoa(e.lv.Color()) + "m" + s + "\033[0m"
+		s = "\033[" + e.lv.Color() + "m" + s + "\033[0m"
+	} else {
+		s = "[" + s + "]"
 	}
+
 	b.WriteString(s)
 }
 
@@ -83,7 +81,7 @@ func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
 func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, printCaller bool) {
 	if printCaller {
 		appendKeyValue(b, _FileKey, fixed.File)
-		appendKeyValue(b, _FuncName, fixed.Fn)
+		appendKeyValue(b, _FuncNameKey, fixed.Fn)
 	}
 
 	// DONE(@yeqown): maybe need an option to make these two option coexist:
