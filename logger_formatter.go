@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
-	"strconv"
+	"time"
 )
 
 const (
-	_FileKey       = "_filepath"
-	_FuncName      = "_func"
-	_TimestampKey  = "_ts"
-	_FormatTimeKey = "_fmt_time"
+	_FileKey       = "_file"
+	_FuncNameKey   = "_func"
+	_TimestampKey  = "_timestamp"
+	_FormatTimeKey = "_time"
 
 	// _interfaceFormat the instruction to format interface value.
 	_interfaceFormat string = "%+v"
@@ -27,33 +27,37 @@ var _ Formatter = &TextFormatter{}
 type TextFormatter struct {
 	// isTerminal indicates whether the Logger's out is to a terminal.
 	isTerminal bool
+
+	// sortField represents whether print fields in order of fields'
+	// keys lexicographical order.
+	sortField bool
+
+	// formatTime means formatter will format timestamp into formatTimeLayout.
+	formatTime       bool
+	formatTimeLayout string
 }
 
-func newTextFormatter(isTerminal bool) Formatter {
+func newTextFormatter(
+	isTerminal, sortField, formatTime bool,
+	formatTimeLayout string,
+) Formatter {
 	return &TextFormatter{
-		isTerminal: isTerminal,
+		isTerminal:       isTerminal,
+		sortField:        sortField,
+		formatTime:       formatTime,
+		formatTimeLayout: formatTimeLayout,
 	}
 }
 
 // Format entry into log
 func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 	b := bytes.NewBuffer(nil)
-
 	// write level and colors
 	f.printColoredLevel(b, e)
-
 	// write fixed fields
-	f.printFixedFields(b, e.fixedField, e.callerReporter, e.formatTime)
-
+	f.printFixedFields(b, e.fixedField, e.callerReporter)
 	// write fields
-	keys := make([]string, 0, len(e.fields))
-	for k := range e.fields {
-		keys = append(keys, k)
-	}
-	// sort by keys
-	sort.Strings(keys)
-	f.printFields(b, keys, e.fields)
-
+	f.printFields(b, e.fields)
 	// write a newline flag
 	b.WriteString("\n")
 
@@ -62,34 +66,57 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 
 // printColoredLevel colored this output
 func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
-	val := e.lv.String()
-	// 	val := "[" + e.lv.String() + "]"
+	s := e.lv.String()
+	// 	s := "[" + e.lv.String() + "]"
 	if f.isTerminal {
-		val = "\033[" + strconv.Itoa(e.lv.Color()) + "m" + val + "\033[0m"
+		s = "\033[" + e.lv.Color() + "m" + s + "\033[0m"
+	} else {
+		s = "[" + s + "]"
 	}
-	b.WriteString(val)
+
+	b.WriteString(s)
 }
 
 // printFixedFields
-func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, printCaller, formatTime bool) {
+func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, printCaller bool) {
 	if printCaller {
 		appendKeyValue(b, _FileKey, fixed.File)
-		appendKeyValue(b, _FuncName, fixed.Fn)
+		appendKeyValue(b, _FuncNameKey, fixed.Fn)
 	}
 
-	// TODO(@yeqown): maybe need an option to make these two option coexist
-	if formatTime {
-		appendKeyValue(b, _FormatTimeKey, fixed.FormattedTime)
+	// DONE(@yeqown): maybe need an option to make these two option coexist:
+	// use WithTimeFormat option API.
+	if f.formatTime {
+		appendKeyValue(b, _FormatTimeKey,
+			time.Unix(fixed.Timestamp, 0).Format(f.formatTimeLayout))
 	} else {
 		appendKeyValue(b, _TimestampKey, fixed.Timestamp)
 	}
 }
 
-// printFields
-func (f *TextFormatter) printFields(b *bytes.Buffer, sortedKeys []string, fields Fields) {
-	for _, key := range sortedKeys {
+// printFields append fields into buffer, sortField represents join
+// fields in order or not, the order is keys' lexicographical order.
+func (f *TextFormatter) printFields(b *bytes.Buffer, fields Fields) {
+	if !f.sortField {
+		for key := range fields {
+			appendKeyValue(b, key, fields[key])
+		}
+		return
+	}
+
+	// If the  formatter need sort keys: WithSortFields option API.
+	// sort keys firstly.
+	keys := make([]string, 0, len(fields))
+	for k := range fields {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// join append field by order of sorted keys.
+	for _, key := range keys {
 		appendKeyValue(b, key, fields[key])
 	}
+	return
 }
 
 func appendKeyValue(b *bytes.Buffer, key string, value interface{}) {

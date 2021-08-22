@@ -29,3 +29,22 @@ func Test_isTerminal(t *testing.T) {
 	ok = isTerminal(w)
 	assert.False(t, ok)
 }
+
+func Test_withDefault(t *testing.T) {
+	o := new(options)
+	err := withDefault(o)
+	assert.NoError(t, err)
+	assert.Equal(t, os.Stdout, o.w)
+	assert.Equal(t, LevelDebug, o.lv)
+	assert.Empty(t, o.globalFields)
+	assert.Equal(t, false, o.formatTime)
+	assert.Equal(t, "", o.formatTimeLayout)
+	assert.Equal(t, false, o.sortField)
+}
+
+func Test_WithFieldsSort(t *testing.T) {
+	o := new(options)
+	err := WithFieldsSort(true)(o)
+	assert.NoError(t, err)
+	assert.True(t, o.sortField)
+}

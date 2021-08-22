@@ -27,21 +27,21 @@ func (lv Level) String() string {
 	return "UNK"
 }
 
-func (lv Level) Color() int {
+func (lv Level) Color() string {
 	switch lv {
 	case LevelFatal:
-		return 35
+		return "35"
 	case LevelError:
-		return 31
+		return "31"
 	case LevelWarning:
-		return 33
+		return "33"
 	case LevelInfo:
-		return 32
+		return "32"
 	case LevelDebug:
-		return 36
+		return "36"
 	}
 
-	return 36
+	return "36"
 }
 
 const (

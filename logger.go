@@ -2,7 +2,7 @@
 //
 // this log is inspired by `https://github.com/silenceper/log` and `https://github.com/sirupsen/logrus`
 // 1. can be set to output to file
-// 2. log file can be splitted into files day by day, just like `app.20060102.log`
+// 2. log file can be split into files day by day, just like `app.20060102.log`
 //
 package log
 
@@ -32,7 +32,7 @@ type Logger struct {
 // NewLogger using os.Stdout and LevelDebug to print log
 func NewLogger(opts ...LoggerOption) (*Logger, error) {
 	in := make([]LoggerOption, 0, len(opts)+1)
-	in = append(in, defaultLoggerOption)
+	in = append(in, withDefault)
 	in = append(in, opts...)
 	return newLoggerWithOptions(in...)
 }
@@ -129,11 +129,14 @@ func (l *Logger) newEntry() *entry {
 		e.lv = l.opt.level()
 		e.out = l.opt.writer()
 		e.callerReporter = l.opt.callerReporter
-		e.formatTime = l.opt.formatTime
-		e.formatTimeLayout = l.opt.formatTimeLayout
 		e.fields = make(Fields, 6)
 		copyFields(e.fields, l.opt.globalFields)
-		e.formatter = newTextFormatter(l.opt.isTerminal())
+		e.formatter = newTextFormatter(
+			l.opt.isTerminal(),
+			l.opt.sortField,
+			l.opt.formatTime,
+			l.opt.formatTimeLayout,
+		)
 		e.ctxParser = l.opt.ctxParser
 		// FIXED(@yeqown): reuse entry incorrectly.
 		return e

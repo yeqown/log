@@ -91,7 +91,7 @@ func Test_entry_Without_Caller(t *testing.T) {
 	assert.Equal(t, true, entry2.callerReporter)
 	entry2.Info("with caller")
 	assert.Contains(t, b.String(), _FileKey)
-	assert.Contains(t, b.String(), _FuncName)
+	assert.Contains(t, b.String(), _FuncNameKey)
 }
 
 func Test_entry_WithContextAndWithFields(t *testing.T) {
@@ -166,8 +166,8 @@ func Test_entry_WithTimeFormat(t *testing.T) {
 	assert.Nil(t, err)
 
 	entry := l.newEntry()
-	assert.Equal(t, true, entry.formatTime)
-	assert.Equal(t, time.RFC850, entry.formatTimeLayout)
+	assert.Equal(t, true, entry.logger.opt.formatTime)
+	assert.Equal(t, time.RFC850, entry.logger.opt.formatTimeLayout)
 
 	entry.Info("with time format and layout")
 
