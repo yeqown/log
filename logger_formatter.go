@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	_FileKey       = "_file"
-	_FuncNameKey   = "_func"
-	_TimestampKey  = "_timestamp"
-	_FormatTimeKey = "_time"
+	_FileKey     = "_file"
+	_FuncNameKey = "_func"
+	// _TimestampKey  = "_timestamp"
+	// _FormatTimeKey = "_time"
 
 	// _interfaceFormat the instruction to format interface value.
 	_interfaceFormat string = "%+v"
@@ -66,31 +66,28 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 
 // printColoredLevel colored this output
 func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
-	s := e.lv.String()
-	// 	s := "[" + e.lv.String() + "]"
+	//s := e.lv.String()
+	s := "[" + e.lv.String() + "]"
 	if f.isTerminal {
 		s = "\033[" + e.lv.Color() + "m" + s + "\033[0m"
-	} else {
-		s = "[" + s + "]"
 	}
-
+	s += " "
 	b.WriteString(s)
 }
 
 // printFixedFields
 func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, printCaller bool) {
-	if printCaller {
-		appendKeyValue(b, _FileKey, fixed.File)
-		appendKeyValue(b, _FuncNameKey, fixed.Fn)
-	}
-
 	// DONE(@yeqown): maybe need an option to make these two option coexist:
 	// use WithTimeFormat option API.
 	if f.formatTime {
-		appendKeyValue(b, _FormatTimeKey,
-			time.Unix(fixed.Timestamp, 0).Format(f.formatTimeLayout))
+		appendValue(b, time.Unix(fixed.Timestamp, 0).Format(f.formatTimeLayout))
 	} else {
-		appendKeyValue(b, _TimestampKey, fixed.Timestamp)
+		appendValue(b, fixed.Timestamp)
+	}
+
+	if printCaller {
+		appendKeyValue(b, _FileKey, fixed.File)
+		appendKeyValue(b, _FuncNameKey, fixed.Fn)
 	}
 }
 
@@ -116,7 +113,6 @@ func (f *TextFormatter) printFields(b *bytes.Buffer, fields Fields) {
 	for _, key := range keys {
 		appendKeyValue(b, key, fields[key])
 	}
-	return
 }
 
 func appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
