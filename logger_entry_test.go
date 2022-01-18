@@ -44,7 +44,7 @@ func Test_newEntry_Cmp(t *testing.T) {
 	assert.Equal(t, entry.ctx, entry2.ctx)
 	assert.Equal(t, entry.lv, entry2.lv)
 	assert.Equal(t, entry.fields, entry2.fields)
-	assert.Equal(t, entry.callerReporter, entry2.callerReporter)
+	assert.Equal(t, entry.withCaller, entry2.withCaller)
 	assert.Equal(t, entry.formatter, entry2.formatter)
 	assert.Equal(t, entry.logger, entry2.logger)
 }
@@ -78,7 +78,7 @@ func Test_entry_Without_Caller(t *testing.T) {
 	assert.Nil(t, err)
 
 	entry := newEntry(l)
-	assert.Equal(t, false, entry.callerReporter)
+	assert.Equal(t, false, entry.withCaller)
 	entry.Info("with out caller")
 	assert.NotContains(t, b.String(), "file")
 	assert.NotContains(t, b.String(), "fn")
@@ -88,7 +88,7 @@ func Test_entry_Without_Caller(t *testing.T) {
 	// open
 	l.SetCallerReporter(true)
 	entry2 := newEntry(l)
-	assert.Equal(t, true, entry2.callerReporter)
+	assert.Equal(t, true, entry2.withCaller)
 	entry2.Info("with caller")
 	assert.Contains(t, b.String(), _FileKey)
 	assert.Contains(t, b.String(), _FuncNameKey)

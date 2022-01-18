@@ -29,6 +29,11 @@ type options struct {
 	formatTimeLayout string
 	// sortField print fields in order of fields' keys lexicographical order.
 	sortField bool
+
+	// _isTerminal indicates the w is terminal or not, this is used for color output.
+	// Note that this is not a public field, it's used for internal,
+	// and it should be judged by isTerminal function.
+	_isTerminal bool
 }
 
 func (o *options) level() Level {
@@ -39,15 +44,25 @@ func (o *options) level() Level {
 	return o.lv
 }
 
-// isTerminal indicates the w (io.Writer) is a byte output device.
-func (o *options) isTerminal() bool {
+func (o *options) writer() io.Writer {
 	if o == nil {
-		return true
+		return os.Stdout
 	}
 
-	return isTerminal(o.w)
+	return o.w
 }
 
+func (o *options) setWriter(w io.Writer) {
+	if o == nil {
+		return
+	}
+
+	o.w = w
+	o._isTerminal = isTerminal(w)
+}
+
+// isTerminal indicates the w (io.Writer) is a byte output device.
+// TODO(@yeqown): caching judgement to reduce system call.
 func isTerminal(w io.Writer) bool {
 	if w == nil {
 		return false
@@ -68,18 +83,10 @@ func isTerminal(w io.Writer) bool {
 	return fi.Mode()&os.ModeNamedPipe == os.ModeNamedPipe || fi.Mode()&os.ModeCharDevice == os.ModeCharDevice
 }
 
-func (o *options) writer() io.Writer {
-	if o == nil {
-		return os.Stdout
-	}
-
-	return o.w
-}
-
 // withDefault sets os.Stdout as write, debug level,
 // terminal open and no global fields.
 func withDefault(lo *options) error {
-	lo.w = os.Stdout
+	lo.setWriter(os.Stdout)
 	lo.lv = LevelDebug
 	// lo.stdout = true
 	//lo.isTerminal = true
@@ -105,9 +112,9 @@ func WithLevel(lv Level) LoggerOption {
 func WithStdout(v bool) LoggerOption {
 	return func(lo *options) error {
 		if lo.w != nil && lo.w != os.Stdout {
-			// If has set a witer, and the writer isn't os.Stdout, use io.MultiWriter
-			// to merge old writer and os.Stdout.
-			lo.w = io.MultiWriter(lo.w, os.Stdout)
+			// If lo.w has been set a writer, and the writer isn't os.Stdout,
+			// use io.MultiWriter to merge old writer and os.Stdout.
+			lo.setWriter(io.MultiWriter(lo.w, os.Stdout))
 		}
 		return nil
 	}
@@ -125,7 +132,7 @@ func WithGlobalFields(fields Fields) LoggerOption {
 func WithCustomWriter(w io.Writer) LoggerOption {
 	return func(lo *options) error {
 		if w != nil {
-			lo.w = w
+			lo.setWriter(w)
 		}
 
 		return nil
@@ -153,46 +160,54 @@ func WithTimeFormat(b bool, layout string) LoggerOption {
 	}
 }
 
-// WithFileLog store log into file, if autoRotate is set,
-// it will start a goroutine to split log file by day.
+// WithFileLog store log into file, if autoRotate is set, it will start a
+// goroutine to split log file by day.
 // TODO(@yeqown): using time round instead of ticker
-func WithFileLog(file string, autoRotate bool) LoggerOption {
+func WithFileLog(fp string, autoRotate bool) LoggerOption {
 	return func(lo *options) error {
-		abs, err := filepath.Abs(file)
+		// open file and set as writer
+		abs, err := filepath.Abs(fp)
 		if err != nil {
-			return errors.Wrapf(err, "WithFileLog.Abs file: %s", file)
+			return errors.Wrapf(err, "WithFileLog.Abs fp: %s", fp)
 		}
-
 		dir, pureFilename := filepath.Split(abs)
-		if lo.w, err = open(abs); err != nil {
-			return errors.Wrapf(err, "WithFileLog.open abs: %s", abs)
+		fd, err2 := open(abs)
+		if err2 != nil {
+			return errors.Wrapf(err2, "WithFileLog.open abs: %s", abs)
+		}
+		lo.setWriter(fd)
+
+		// judge whether auto rotate enabled or not, if not enabled, return here.
+		if !autoRotate {
+			return nil
 		}
 
-		// support autoRotate
-		if autoRotate {
-			go func() {
-				ticker := time.NewTicker(1 * time.Minute)
-				for tick := range ticker.C {
-					if !shouldSplitByTime(tick) {
-						continue
-					}
-
-					// rename file to old filename
-					if err = rename(dir, pureFilename); err != nil {
-						fmt.Printf("rename failed dir: %s, filename: %s err: %v \n", dir, pureFilename, err)
-						continue
-					}
-					// open new file
-					if lo.w, err = open(assembleFilename(dir, file, true)); err != nil {
-						fmt.Printf("open failed file: %s, err: %v \n", assembleFilename(dir, file, true), err)
-						continue
-					}
-
-					// record the splitting time
-					lastSplitTimestamp = time.Now()
+		// start a new goroutine to split log file by day.
+		go func() {
+			ticker := time.NewTicker(1 * time.Minute)
+			for tick := range ticker.C {
+				if !shouldSplitByTime(tick) {
+					continue
 				}
-			}()
-		}
+
+				// rename fp to old filename
+				if err = rename(dir, pureFilename); err != nil {
+					fmt.Printf("rename failed dir: %s, filename: %s err: %v \n", dir, pureFilename, err)
+					continue
+				}
+
+				// open new fp and reset writer.
+				fd, err = open(assembleFilename(dir, fp, true))
+				if err != nil {
+					fmt.Printf("open failed fp: %s, err: %v \n", assembleFilename(dir, fp, true), err)
+					continue
+				}
+				lo.setWriter(fd)
+
+				// record the splitting time
+				lastSplitTimestamp = time.Now()
+			}
+		}()
 
 		return nil
 	}

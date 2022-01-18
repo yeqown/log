@@ -223,3 +223,28 @@ func Test_shouldSplitByTime(t *testing.T) {
 		})
 	}
 }
+
+func Benchmark_Logger_normal(b *testing.B) {
+	l, err := NewLogger(
+		WithFieldsSort(true),
+		WithReportCaller(true),
+		WithTimeFormat(true, time.RFC822),
+	)
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		l.WithFields(
+			Fields{"string": "value", "int": 1, "struct": struct {
+				_ func()
+				A int
+				B string
+				F float64
+			}{
+				A: 10, B: "BBBB", F: 1.1231,
+			},
+			}).Infof("Benchmark_Logger_normal with info level: %d", 12)
+	}
+}

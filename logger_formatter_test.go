@@ -61,15 +61,15 @@ func Test_format(t *testing.T) {
 	formatter := newTextFormatter(
 		false, false, true, time.RFC3339)
 	entry := entry{
-		logger:         nil,
-		out:            nil,
-		formatter:      nil,
-		lv:             0,
-		callerReporter: false,
-		fixedField:     &fixedField{Timestamp: time.Now().Unix()},
-		fields:         Fields{"a": "a", "b": "b", "c": "c"},
-		ctx:            nil,
-		ctxParser:      nil,
+		logger:     nil,
+		out:        nil,
+		formatter:  nil,
+		lv:         0,
+		withCaller: false,
+		fixedField: &fixedField{Timestamp: time.Now().Unix()},
+		fields:     Fields{"a": "a", "b": "b", "c": "c"},
+		ctx:        nil,
+		ctxParser:  nil,
 	}
 	out, err := formatter.Format(&entry)
 	assert.NoError(t, err)

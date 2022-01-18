@@ -55,7 +55,7 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 	// write level and colors
 	f.printColoredLevel(b, e)
 	// write fixed fields
-	f.printFixedFields(b, e.fixedField, e.callerReporter)
+	f.printFixedFields(b, e.fixedField, e.withCaller)
 	// write fields
 	f.printFields(b, e.fields)
 	// write a newline flag

@@ -128,11 +128,11 @@ func (l *Logger) newEntry() *entry {
 		e.logger = l
 		e.lv = l.opt.level()
 		e.out = l.opt.writer()
-		e.callerReporter = l.opt.callerReporter
+		e.withCaller = l.opt.callerReporter
 		e.fields = make(Fields, 6)
 		copyFields(e.fields, l.opt.globalFields)
 		e.formatter = newTextFormatter(
-			l.opt.isTerminal(),
+			l.opt._isTerminal,
 			l.opt.sortField,
 			l.opt.formatTime,
 			l.opt.formatTimeLayout,

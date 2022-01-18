@@ -11,11 +11,11 @@ import (
 )
 
 type entry struct {
-	logger         *Logger   // logger pointer
-	out            io.Writer // write to record
-	formatter      Formatter // format entry to log
-	lv             Level     // the lowest lv which could be logged.
-	callerReporter bool      // log caller
+	logger     *Logger   // logger pointer
+	out        io.Writer // write to record
+	formatter  Formatter // format entry to log
+	lv         Level     // the lowest lv which could be logged.
+	withCaller bool      // withCaller indicates whether to log caller info.
 	//formatTime       bool      // should time be formatted and printed
 	//formatTimeLayout string    // the layout of time be formatted.
 
@@ -28,22 +28,22 @@ type entry struct {
 
 func newEntry(l *Logger) *entry {
 	formatter := newTextFormatter(
-		l.opt.isTerminal(),
+		l.opt._isTerminal,
 		l.opt.sortField,
 		l.opt.formatTime,
 		l.opt.formatTimeLayout,
 	)
 
 	e := entry{
-		logger:         l,
-		out:            l.opt.writer(),
-		formatter:      formatter,
-		lv:             l.opt.lv,
-		callerReporter: l.opt.callerReporter,
-		fixedField:     nil,
-		fields:         make(Fields, 4),
-		ctx:            nil,
-		ctxParser:      l.opt.ctxParser,
+		logger:     l,
+		out:        l.opt.writer(),
+		formatter:  formatter,
+		lv:         l.opt.lv,
+		withCaller: l.opt.callerReporter,
+		fixedField: nil,
+		fields:     make(Fields, 4),
+		ctx:        nil,
+		ctxParser:  l.opt.ctxParser,
 	}
 
 	if l.opt.globalFields != nil && len(l.opt.globalFields) != 0 {
@@ -59,15 +59,15 @@ func (e *entry) copy() *entry {
 	copyFields(dst, e.fields)
 
 	newer := &entry{
-		logger:         e.logger,
-		out:            e.out,
-		formatter:      e.formatter,
-		lv:             e.lv,
-		callerReporter: e.callerReporter,
-		fixedField:     nil,
-		fields:         dst,
-		ctx:            e.ctx,
-		ctxParser:      e.ctxParser,
+		logger:     e.logger,
+		out:        e.out,
+		formatter:  e.formatter,
+		lv:         e.lv,
+		withCaller: e.withCaller,
+		fixedField: nil,
+		fields:     dst,
+		ctx:        e.ctx,
+		ctxParser:  e.ctxParser,
 	}
 
 	return newer
@@ -97,7 +97,7 @@ func (e *entry) reset() {
 	e.fixedField = nil
 	e.ctx = nil
 	e.ctxParser = nil
-	e.callerReporter = false
+	e.withCaller = false
 }
 
 func (e *entry) Fatal(args ...interface{}) {
@@ -155,7 +155,7 @@ func (e *entry) output(lv Level, msg string) {
 		//Fn:            fn,
 	}
 
-	if e.callerReporter {
+	if e.withCaller {
 		file := "failed"
 		fn := "failed"
 		line := 0
