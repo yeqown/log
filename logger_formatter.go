@@ -57,7 +57,9 @@ func (f *TextFormatter) Format(e *entry, msg string) ([]byte, error) {
 	// write fixed fields
 	f.printFixedFields(b, e.fixedField, e.withCaller)
 	// write fields
-	f.printFields(b, e.fields)
+	if len(e.fields) > 0 {
+		f.printFields(b, e.fields)
+	}
 	// write a newline flag
 	b.WriteString(" " + msg + "\n")
 
