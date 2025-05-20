@@ -19,7 +19,7 @@ const (
 
 // Formatter to format entry fields and other field
 type Formatter interface {
-	Format(*entry) ([]byte, error)
+	Format(*entry, string) ([]byte, error)
 }
 
 var _ Formatter = &TextFormatter{}
@@ -50,7 +50,7 @@ func newTextFormatter(
 }
 
 // Format entry into log
-func (f *TextFormatter) Format(e *entry) ([]byte, error) {
+func (f *TextFormatter) Format(e *entry, msg string) ([]byte, error) {
 	b := bytes.NewBuffer(nil)
 	// write level and colors
 	f.printColoredLevel(b, e)
@@ -59,7 +59,7 @@ func (f *TextFormatter) Format(e *entry) ([]byte, error) {
 	// write fields
 	f.printFields(b, e.fields)
 	// write a newline flag
-	b.WriteString("\n")
+	b.WriteString(" " + msg + "\n")
 
 	return b.Bytes(), nil
 }
@@ -86,37 +86,44 @@ func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, pri
 	}
 
 	if printCaller {
-		appendKeyValue(b, _FileKey, fixed.File)
-		appendKeyValue(b, _FuncNameKey, fixed.Fn)
+		appendKeyValue(b, _FileKey, fixed.File, true)
+		appendKeyValue(b, _FuncNameKey, fixed.Fn, true)
 	}
 }
 
 // printFields append fields into buffer, sortField represents join
 // fields in order or not, the order is keys' lexicographical order.
 func (f *TextFormatter) printFields(b *bytes.Buffer, fields Fields) {
+	b.WriteString(" Fields{")
+	defer b.WriteString("}")
+
 	if !f.sortField {
+		n := 0
 		for key := range fields {
-			appendKeyValue(b, key, fields[key])
+			appendKeyValue(b, key, fields[key], n != 0)
+			n++
 		}
 		return
 	}
 
-	// If the  formatter need sort keys: WithSortFields option API.
-	// sort keys firstly.
+	// If the formatter needs sort keys: WithSortFields option API.
+	// Sort keys firstly.
 	keys := make([]string, 0, len(fields))
 	for k := range fields {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	// join append field by order of sorted keys.
+	// join the appended field by order of sorted keys.
+	n := 0
 	for _, key := range keys {
-		appendKeyValue(b, key, fields[key])
+		appendKeyValue(b, key, fields[key], n != 0)
+		n++
 	}
 }
 
-func appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
-	if b.Len() > 0 {
+func appendKeyValue(b *bytes.Buffer, key string, value interface{}, indent bool) {
+	if b.Len() > 0 && indent {
 		b.WriteByte(' ')
 	}
 	b.WriteString(key)
@@ -126,9 +133,11 @@ func appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
 
 func appendValue(b *bytes.Buffer, value interface{}) {
 	stringVal, ok := value.(string)
-	if !ok {
-		stringVal = fmt.Sprintf(_interfaceFormat, value)
+	if ok {
+		b.WriteString(stringVal)
+		return
 	}
 
+	stringVal = fmt.Sprintf(_interfaceFormat, value)
 	b.WriteString(fmt.Sprintf("%q", stringVal))
 }

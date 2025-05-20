@@ -173,7 +173,6 @@ func (e *entry) output(lv Level, msg string) {
 
 	// setting current lv
 	e.lv = lv
-	e.fields["msg"] = msg
 
 	// parse context
 	if e.ctx != nil && e.ctxParser != nil {
@@ -182,7 +181,7 @@ func (e *entry) output(lv Level, msg string) {
 	}
 
 	// format message
-	data, err := e.formatter.Format(e)
+	data, err := e.formatter.Format(e, msg)
 	if err != nil {
 		// FIXED: throw error in a way not panic
 		// panic(err)

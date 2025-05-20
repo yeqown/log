@@ -51,7 +51,7 @@ func Test_appendValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			appendKeyValue(tt.args.b, tt.name, tt.args.value)
+			appendKeyValue(tt.args.b, tt.name, tt.args.value, true)
 			t.Log(tt.args.b.String())
 		})
 	}
@@ -66,12 +66,12 @@ func Test_format(t *testing.T) {
 		formatter:  nil,
 		lv:         0,
 		withCaller: false,
-		fixedField: &fixedField{Timestamp: time.Now().Unix()},
+		fixedField: &fixedField{Timestamp: 1747750112},
 		fields:     Fields{"a": "a", "b": "b", "c": "c"},
 		ctx:        nil,
 		ctxParser:  nil,
 	}
-	out, err := formatter.Format(&entry)
+	out, err := formatter.Format(&entry, "This is a test message")
 	assert.NoError(t, err)
-	t.Logf("%s", out)
+	assert.Equal(t, "[FTL] 2025-05-20T22:08:32+08:00 Fields{a=a b=b c=c} This is a test message", string(out))
 }
