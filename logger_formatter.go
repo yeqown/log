@@ -68,7 +68,7 @@ func (f *TextFormatter) Format(e *entry, msg string) ([]byte, error) {
 
 // printColoredLevel colored this output
 func (f *TextFormatter) printColoredLevel(b *bytes.Buffer, e *entry) {
-	//s := e.lv.String()
+	// s := e.lv.String()
 	s := "[" + e.lv.String() + "]"
 	if f.isTerminal {
 		s = "\033[" + e.lv.Color() + "m" + s + "\033[0m"
@@ -82,14 +82,14 @@ func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, pri
 	// DONE(@yeqown): maybe need an option to make these two option coexist:
 	// use WithTimeFormat option API.
 	if f.formatTime {
-		appendValue(b, time.Unix(fixed.Timestamp, 0).Format(f.formatTimeLayout))
+		appendValue(b, time.Unix(fixed.Timestamp, 0).Format(f.formatTimeLayout), false)
 	} else {
-		appendValue(b, fixed.Timestamp)
+		appendValue(b, fixed.Timestamp, false)
 	}
 
 	if printCaller {
-		appendKeyValue(b, _FileKey, fixed.File, true)
-		appendKeyValue(b, _FuncNameKey, fixed.Fn, true)
+		appendKeyValue(b, _FileKey, fixed.File, true, false)
+		appendKeyValue(b, _FuncNameKey, fixed.Fn, true, false)
 	}
 }
 
@@ -102,7 +102,7 @@ func (f *TextFormatter) printFields(b *bytes.Buffer, fields Fields) {
 	if !f.sortField {
 		n := 0
 		for key := range fields {
-			appendKeyValue(b, key, fields[key], n != 0)
+			appendKeyValue(b, key, fields[key], n != 0, true)
 			n++
 		}
 		return
@@ -119,25 +119,27 @@ func (f *TextFormatter) printFields(b *bytes.Buffer, fields Fields) {
 	// join the appended field by order of sorted keys.
 	n := 0
 	for _, key := range keys {
-		appendKeyValue(b, key, fields[key], n != 0)
+		appendKeyValue(b, key, fields[key], n != 0, true)
 		n++
 	}
 }
 
-func appendKeyValue(b *bytes.Buffer, key string, value interface{}, indent bool) {
+func appendKeyValue(b *bytes.Buffer, key string, value interface{}, indent, withQuote bool) {
 	if b.Len() > 0 && indent {
 		b.WriteByte(' ')
 	}
 	b.WriteString(key)
 	b.WriteByte('=')
-	appendValue(b, value)
+	appendValue(b, value, withQuote)
 }
 
-func appendValue(b *bytes.Buffer, value interface{}) {
+func appendValue(b *bytes.Buffer, value interface{}, withQuote bool) {
 	stringVal, ok := value.(string)
 	if ok {
-		b.WriteString(stringVal)
-		return
+		if !withQuote {
+			b.WriteString(stringVal)
+			return
+		}
 	}
 
 	stringVal = fmt.Sprintf(_interfaceFormat, value)
