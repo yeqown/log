@@ -82,9 +82,9 @@ func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, pri
 	// DONE(@yeqown): maybe need an option to make these two option coexist:
 	// use WithTimeFormat option API.
 	if f.formatTime {
-		appendValue(b, time.Unix(fixed.Timestamp, 0).Format(f.formatTimeLayout), false)
+		appendValue(b, time.UnixMilli(fixed.Timestamp).Format(f.formatTimeLayout), false)
 	} else {
-		appendValue(b, fixed.Timestamp, false)
+		appendValue(b, fmt.Sprintf("%d.%03d", fixed.Timestamp/1000, fixed.Timestamp%1000), false)
 	}
 
 	if printCaller {

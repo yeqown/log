@@ -150,7 +150,7 @@ func (e *entry) output(lv Level, msg string) {
 	now := time.Now()
 
 	e.fixedField = &fixedField{
-		Timestamp: now.Unix(),
+		Timestamp: now.UnixMilli(),
 		//File:          file + ":" + strconv.Itoa(line),
 		//Fn:            fn,
 	}

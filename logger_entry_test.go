@@ -170,5 +170,21 @@ func Test_entry_WithTimeFormat(t *testing.T) {
 	assert.Equal(t, time.RFC850, entry.logger.opt.formatTimeLayout)
 
 	entry.Info("with time format and layout")
+}
 
+func Test_entry_UsesUnixMillisecondsTimestamp(t *testing.T) {
+	b := &bytes.Buffer{}
+	l, err := NewLogger(
+		WithCustomWriter(b),
+	)
+	assert.Nil(t, err)
+
+	entry := l.newEntry()
+	before := time.Now().UnixMilli()
+	entry.Info("with millisecond timestamp")
+	after := time.Now().UnixMilli()
+
+	assert.NotNil(t, entry.fixedField)
+	assert.GreaterOrEqual(t, entry.fixedField.Timestamp, before)
+	assert.LessOrEqual(t, entry.fixedField.Timestamp, after)
 }

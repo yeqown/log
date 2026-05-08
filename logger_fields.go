@@ -7,7 +7,7 @@ type Fields map[string]interface{}
 type fixedField struct {
 	File      string `json:"_filepath"` // filename "xxx.go:132"
 	Fn        string `json:"_func"`     // func name
-	Timestamp int64  `json:"_ts"`       // timestamp
+	Timestamp int64  `json:"_ts"`       // timestamp in milliseconds
 }
 
 // copyFields copy all fields in src to dst
