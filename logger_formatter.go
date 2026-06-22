@@ -96,14 +96,9 @@ func (f *TextFormatter) printFixedFields(b *bytes.Buffer, fixed *fixedField, pri
 // printFields append fields into buffer, sortField represents join
 // fields in order or not, the order is keys' lexicographical order.
 func (f *TextFormatter) printFields(b *bytes.Buffer, fields Fields) {
-	b.WriteString(" Fields{")
-	defer b.WriteString("}")
-
 	if !f.sortField {
-		n := 0
 		for key := range fields {
-			appendKeyValue(b, key, fields[key], n != 0, true)
-			n++
+			appendKeyValue(b, key, fields[key], true, false)
 		}
 		return
 	}
@@ -117,10 +112,8 @@ func (f *TextFormatter) printFields(b *bytes.Buffer, fields Fields) {
 	sort.Strings(keys)
 
 	// join the appended field by order of sorted keys.
-	n := 0
 	for _, key := range keys {
-		appendKeyValue(b, key, fields[key], n != 0, true)
-		n++
+		appendKeyValue(b, key, fields[key], true, false)
 	}
 }
 
@@ -135,13 +128,13 @@ func appendKeyValue(b *bytes.Buffer, key string, value interface{}, indent, with
 
 func appendValue(b *bytes.Buffer, value interface{}, withQuote bool) {
 	stringVal, ok := value.(string)
-	if ok {
-		if !withQuote {
-			b.WriteString(stringVal)
-			return
-		}
+	if !ok {
+		stringVal = fmt.Sprintf(_interfaceFormat, value)
+	}
+	if !withQuote {
+		b.WriteString(stringVal)
+		return
 	}
 
-	stringVal = fmt.Sprintf(_interfaceFormat, value)
-	b.WriteString(fmt.Sprintf("%q", stringVal))
+	fmt.Fprintf(b, "%q", stringVal)
 }
