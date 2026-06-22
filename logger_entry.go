@@ -46,7 +46,7 @@ func newEntry(l *Logger) *entry {
 		ctxParser:  l.opt.ctxParser,
 	}
 
-	if l.opt.globalFields != nil && len(l.opt.globalFields) != 0 {
+	if len(l.opt.globalFields) != 0 {
 		copyFields(e.fields, l.opt.globalFields)
 	}
 

@@ -63,7 +63,7 @@ func Test_appendValue(t *testing.T) {
 
 func Test_format(t *testing.T) {
 	formatter := newTextFormatter(
-		false, false, true, time.RFC3339)
+		false, true, true, time.RFC3339)
 	entry := entry{
 		logger:     nil,
 		out:        nil,
@@ -71,13 +71,13 @@ func Test_format(t *testing.T) {
 		lv:         0,
 		withCaller: false,
 		fixedField: &fixedField{Timestamp: 1747750112123},
-		fields:     Fields{"a": "a", "b": "b", "c": "c"},
+		fields:     Fields{"a": "a", "b": 200, "c": []string{"c", "d"}},
 		ctx:        nil,
 		ctxParser:  nil,
 	}
 	out, err := formatter.Format(&entry, "This is a test message")
 	assert.NoError(t, err)
-	assert.Equal(t, "[FTL] 2025-05-20T22:08:32+08:00 Fields{a=\"a\" b=\"b\" c=\"c\"} This is a test message\n", string(out))
+	assert.Equal(t, "[FTL] 2025-05-20T22:08:32+08:00 a=a b=200 c=[c d] This is a test message\n", string(out))
 }
 
 func Test_format_WithRawMillisecondTimestamp(t *testing.T) {
